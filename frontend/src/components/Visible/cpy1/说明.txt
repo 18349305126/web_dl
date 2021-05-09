@@ -1,0 +1,1 @@
+DicomController传给DicomWindow dicom文件

@@ -1,0 +1,2 @@
+实现了基本的重构，Dicomwindow接受的是image类型
+

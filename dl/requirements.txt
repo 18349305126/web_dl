@@ -1,0 +1,15 @@
+colorlog==4.7.2
+dicompyler-core==0.5.5
+Django==3.1.5
+numpy==1.19.5
+pillow==8.1.0
+pydicom==2.1.2
+pycocotools==2.0.2
+python-levenshtein==0.12.0
+six==1.15.0
+SimpleITK==2.0.2
+scipy==1.2.1
+matplotlib
+sklearn
+tensorflow==1.12.0
+keras==2.2.4 -i https://pypi.tuna.tsinghua.edu.cn/simple
