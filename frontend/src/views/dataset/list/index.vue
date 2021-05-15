@@ -98,9 +98,6 @@
           <el-button v-if="row.status!='draft'" size="mini" @click="handleModifyStatus(row,'draft')">
             草稿
           </el-button>
-          <el-button v-if="true" size="mini" @click="handleModifyStatus(row,'draft')">
-            展示
-          </el-button>
           <el-button v-if="row.status!='deleted'" size="mini" type="danger" @click="handleDelete(row,$index)">
             删除
           </el-button>
@@ -269,7 +266,6 @@ export default {
       this.getList()
     },
     handleModifyStatus(row, status) {
-      console.log(row);
       this.$message({
         message: '操作成功',
         type: 'success'

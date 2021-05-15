@@ -9605,6 +9605,11 @@ simple-swizzle@^0.2.2:
   dependencies:
     is-arrayish "^0.3.1"
 
+simple-uploader.js@^0.5.6:
+  version "0.5.6"
+  resolved "https://registry.yarnpkg.com/simple-uploader.js/-/simple-uploader.js-0.5.6.tgz#d37b8c0238348b3993541c7293ae9de5658b23a0"
+  integrity sha512-ukjL0wZhK1dNMaQa6sd+UpCSmnUjblaUGbAd/B8f5IFrChMzDsC/7eFSK4bs4BS5NPJFSZVLI+l6Ri7THTkQtw==
+
 sisteransi@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/sisteransi/-/sisteransi-1.0.5.tgz#134d681297756437cc05ca01370d3a7a571075ed"
@@ -10890,6 +10895,13 @@ vue-router@3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-3.2.0.tgz#da35195ffe37fdf0bec9f5f8f72781d2a7718815"
   integrity sha512-khkrcUIzMcI1rDcNtqkvLwfRFzB97GmJEsPAQdj7t/VvpGhmXLOkUfhc+Ah8CvpSXGXwuWuQO+x8Sy/xDhXZIA==
+
+vue-simple-uploader@^0.7.6:
+  version "0.7.6"
+  resolved "https://registry.yarnpkg.com/vue-simple-uploader/-/vue-simple-uploader-0.7.6.tgz#2da8ce6995c0701c9b16acb7171b351835091d0e"
+  integrity sha512-DYddedNi+ZZzqxmKgW2t4lBN3aiB66oKOxgAfS9Hz9J1FHv7Xt+u1Pq8F48BFS4vG0+MFHCNzjzS2xaEUOIcHQ==
+  dependencies:
+    simple-uploader.js "^0.5.6"
 
 vue-style-loader@^4.1.0, vue-style-loader@^4.1.2:
   version "4.1.3"

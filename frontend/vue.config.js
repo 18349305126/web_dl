@@ -53,8 +53,7 @@ module.exports = {
     name: name,
     resolve: {
       alias: {
-        '@': resolve('src'),
-        // 'static':resolve('public/static'),
+        '@': resolve('src')
       }
     }
   },
@@ -72,7 +71,6 @@ module.exports = {
 
     // when there are many pages, it will cause too many meaningless requests
     config.plugins.delete('prefetch')
-    // config.resolve.alias.set('static','public/static')
 
     // set svg-sprite-loader
     config.module

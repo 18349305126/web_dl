@@ -13,12 +13,12 @@
 <script>
 //引入 cornerstone,dicomParser,cornerstoneWADOImageLoader
 import * as dicomParser from "dicom-parser";
-import * as tf from "@tensorflow/tfjs";
+// import * as tf from "@tensorflow/tfjs";
 import * as THREE from "three";
 
 
 export default {
-  name: "DicomResultWindow",
+  name: "FusionWindow",
   props: [
     "mat0",
     "mat1",
@@ -810,7 +810,8 @@ export default {
   watch: {
     mat0(new_m, old_m) {
       if (new_m != undefined) {
-        // console.log("recive mat0");
+
+        // console.log("recive mat0",new_m);
 
         this.wnd_states[0] = true;
         this.mat0_width = new_m.length;
@@ -829,6 +830,7 @@ export default {
     },
     mat1(new_m, old_m) {
       if (new_m != undefined) {
+        // console.log("recive mat1",new_m);
         // console.log("recive mat1");
         this.wnd_states[1] = true;
         this.mat1_width = new_m.length;
@@ -848,6 +850,7 @@ export default {
     },
     mat2(new_m, old_m) {
       if (new_m != undefined) {
+        // console.log("recive mat2",new_m);
         // console.log("recive mat1");
         this.wnd_states[2] = true;
         this.mat2_width = new_m.length;

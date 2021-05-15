@@ -384,14 +384,14 @@ export default {
     },
     handleProjectModel(row) {
       fetchModel(row.id).then(response => {
-        console.log("fetch",response.data);
-        console.log("fetch",response);
+        console.log(response.data)
         this.modelList = response.data
         this.modelTotal = response.data.total
         this.dialogTableVisible = true
       })
     },
     handleModel(row) {
+
       this.$router.push({
       path: `/project/board/${row.model_id}` ,
       query: {
@@ -410,6 +410,7 @@ export default {
           }
         },
     handleCreateModel(row){
+          console.log(row)
           this.resetModelTemp(row)
           this.dialogStatus = 'createmodel'
           this.dialogFormVisible = true

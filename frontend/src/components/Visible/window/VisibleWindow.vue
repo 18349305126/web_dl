@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import * as tf from "@tensorflow/tfjs";
+// import * as tf from "@tensorflow/tfjs";
 import * as THREE from "three";
 
 // //引入 cornerstone,dicomParser,cornerstoneWADOImageLoader

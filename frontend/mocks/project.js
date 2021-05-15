@@ -179,19 +179,19 @@ module.exports = [
     }
   },
 
-  // {
-  //   url: '/project/model/list',
-  //   type: 'get',
-  //   response: config => {
-  //     const { id } = config.query
-  //     return {
-  //       code: 200,
-  //       data: {
-  //         total: ModelList[id].length,
-  //         items: ModelList[id]
-  //       }
-  //     }
-  //   }
-  // }
+  {
+    url: '/project/model/list',
+    type: 'get',
+    response: config => {
+      const { id } = config.query
+      return {
+        code: 200,
+        data: {
+          total: ModelList[id].length,
+          items: ModelList[id]
+        }
+      }
+    }
+  }
 
 ]

@@ -7,8 +7,8 @@
 <script>
 import * as THREE from "three";
 import Vue from "vue";
-import { CSS2DRenderer, CSS2DObject } from "three-css2drender";
-import { BufferGeometry, Material, MeshBasicMaterial } from "three";
+// import { CSS2DRenderer, CSS2DObject } from "three-css2drender";
+// import { BufferGeometry, Material, MeshBasicMaterial } from "three";
 import axios from "axios";
 // import * as cornerstone from "cornerstone-core";
 // import * as dicomParser from "dicom-parser";
@@ -65,9 +65,9 @@ export default {
     this.control.speed_scale = 10;
     this.control.speed_rotate = 0.002;
 
-    this.control.rect.x = 90;
-    this.control.rect.y = 90;
-    this.control.rect.z = 90;//初始相机位置
+    this.control.rect.x = 10;
+    this.control.rect.y = 10;
+    this.control.rect.z = 100;//初始相机位置
 
     let sp_coord = this.get_spher_coord(this.control.rect.x,this.control.rect.y,this.control.rect.z);
     this.control.spher.r = sp_coord.r;
@@ -98,14 +98,28 @@ export default {
   methods: {
     initRender() {
       this.scene = new THREE.Scene();
-      this.scene.add(new THREE.AmbientLight(0xdddddd,0.2)); //环境光
+      this.scene.add(new THREE.AmbientLight(0xdddddd,0.1)); //环境光
 
       // this.light = new THREE.DirectionalLight(0xff0000, 1); //
-      this.light = new THREE.PointLight(0xeeeeee, 1, 0);
-      this.light.position.set(200, 200, 200);
+      
+      // this.light = new THREE.PointLight(0xeeeeee, 1, 0);
+      // this.light.position.set(10, 10, 200);
+      // // this.light.position.multiplyScalar(0.3);
+      // this.light.position.multiplyScalar(1);
+      // this.scene.add(this.light);
+
+      let light0 = new THREE.PointLight(0xeeeeee, 1, 0);
+      light0.position.set(10, 10, 200);
       // this.light.position.multiplyScalar(0.3);
-      this.light.position.multiplyScalar(1);
-      this.scene.add(this.light);
+      light0.position.multiplyScalar(1);
+      this.scene.add(light0);
+
+      let light1 = new THREE.PointLight(0xeeeeee, 1, 0);
+      light1.position.set(-10, -10, -200);
+      // this.light.position.multiplyScalar(0.3);
+      light1.position.multiplyScalar(1);
+      this.scene.add(light1);
+
 
       this.camera = new THREE.PerspectiveCamera(
         75,

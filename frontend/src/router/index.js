@@ -31,11 +31,11 @@ import Layout from '@/layout'
  * all roles can be accessed
  */
 export const constantRoutes = [
-  {
-    path:'/visible',
-    component: ()=> import('@/views/visible/VisiblePage'),
+  // {
+  //   path:'/visible',
+  //   component: ()=> import('@/views/visible/VisiblePage'),
 
-  },
+  // },
   {
     path:'/visibleshow',
     component: ()=> import('@/views/visible/VisibleShowTest'),
@@ -64,6 +64,8 @@ export const constantRoutes = [
       meta: { title: '首页', icon: 'dashboard' }
     }]
   },
+
+  
 
   {
     path: '/project',
@@ -162,6 +164,19 @@ export const constantRoutes = [
       }
     ]
   },
+
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/visible/show',
+    children: [{
+      path: 'show',
+      name: 'Visible',
+      component: () => import('@/views/visible/VisiblePage'),
+      meta: { title: '数据可视化', icon: 'el-icon-view' }
+    }]
+  },
+
 
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }

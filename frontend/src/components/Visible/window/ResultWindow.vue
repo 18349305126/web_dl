@@ -57,6 +57,28 @@
 
       </LabelWindow>
     </div>
+    <div v-else-if="this.$store.getters.result_view_state == 3">
+      <ThreeViewWindow
+        label="z"
+        v-bind:mat0="z_mat"
+        v-bind:mat1="x_mat"
+        v-bind:mat2="y_mat"
+        v-bind:width="width"
+        v-bind:height="height"
+        v-bind:mat0_row_spacing="mat0_row_spacing"
+        v-bind:mat0_col_spacing="mat0_col_spacing"
+        v-bind:mat1_row_spacing="mat1_row_spacing"
+        v-bind:mat1_col_spacing="mat1_col_spacing"
+        v-bind:mat2_row_spacing="mat2_row_spacing"
+        v-bind:mat2_col_spacing="mat2_col_spacing"
+
+        v-bind:x_index="x_index"
+        v-bind:y_index="y_index"
+        v-bind:z_index="z_index"
+
+      >
+      </ThreeViewWindow>
+    </div>
     
     <div v-else>
       <VolumeRenderWindow
@@ -79,6 +101,7 @@ import VolumeRenderWindow from "./VolumeRenderWindow";
 import LabelWindow from "./LabelWindow";
 import * as tf from "@tensorflow/tfjs";
 import * as THREE from "three";
+import ThreeViewWindow from './ThreeViewWindow.vue';
 
 // //引入 cornerstone,dicomParser,cornerstoneWADOImageLoader
 // import * as cornerstone from "cornerstone-core";
@@ -119,8 +142,8 @@ import * as THREE from "three";
 //   cornerstoneWADOImageLoader.webWorkerManager.initialize(config);
 
 export default {
-  name: "DicomResultWindow",
-  components: { FusionWindow,VolumeRenderWindow,LabelWindow},
+  name: "ResultWindow",
+  components: { FusionWindow,VolumeRenderWindow,LabelWindow,ThreeViewWindow},
 
   props: [
     "mat0",
@@ -145,7 +168,17 @@ export default {
     "normals",
 
     "label_mat",
-    "marks"
+    "marks",
+
+    "x_index",
+    "y_index",
+    "z_index",
+    
+    "z_mat",
+    "x_mat",
+    "y_mat",
+
+    
 
   ],
   //其中mat是dicomController传过来的切片矩阵，

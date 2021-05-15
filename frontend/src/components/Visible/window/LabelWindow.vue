@@ -12,11 +12,11 @@
 
 <script>
 //引入 cornerstone,dicomParser,cornerstoneWADOImageLoader
-import * as tf from "@tensorflow/tfjs";
+// import * as tf from "@tensorflow/tfjs";
 import * as THREE from "three";
 
 export default {
-  name: "VisibleWindow",
+  name: "LabelWindow",
   props: [
     "mat",
     "width",

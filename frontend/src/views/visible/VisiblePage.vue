@@ -9,71 +9,191 @@
           <el-card class="box-card-component">
             <div class="choice">
               <el-row>
-              <el-dropdown :show-timeout="100" trigger="click">
-                <el-button plain>
-                  <!-- {{ !comment_disabled ? "Comment: opened" : "Comment: closed" }} -->
-                  <span v-if="result_state == 0">体渲染</span>
-                  <span v-else-if="result_state == 1">影像融合</span>
-                  <span v-else-if="result_state == 2">标签标记</span>
-                  <i class="el-icon-caret-bottom el-icon--right" />
-                </el-button>
-                <el-dropdown-menu slot="dropdown" class="no-padding">
-                  <el-dropdown-item>
-                    <el-radio-group
-                      v-model="result_state"
-                      style="padding: 10px"
-                    >
-                      <el-radio :label="0"> 体渲染 </el-radio>
-                      <el-radio :label="1"> 影像融合 </el-radio>
-                      <el-radio :label="2"> 标签标记 </el-radio>
-                    </el-radio-group>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-              <el-checkbox
-                class="fusion_check"
-                v-model="result_fusion"
-                active-value="1"
-                inactive-value="0"
-                label="图像融合功能"
-                border
-                :disabled="disabled"
-              ></el-checkbox>
+                <el-dropdown :show-timeout="100" trigger="click">
+                  <el-button plain>
+                    <!-- {{ !comment_disabled ? "Comment: opened" : "Comment: closed" }} -->
+                    <span v-if="result_state == 0">三维重建</span>
+                    <span v-else-if="result_state == 1">影像融合</span>
+                    <!-- <span v-else-if="result_state == 2">标签标记</span> -->
+                    <span v-else-if="result_state == 3">三维显示</span>
+
+                    <i class="el-icon-caret-bottom el-icon--right" />
+                  </el-button>
+                  <el-dropdown-menu slot="dropdown" class="no-padding">
+                    <el-dropdown-item>
+                      <el-radio-group
+                        v-model="result_state"
+                        style="padding: 10px"
+                      >
+                        <el-radio :label="0"> 三维重建 </el-radio>
+                        <el-radio :label="1"> 影像融合 </el-radio>
+                        <!-- <el-radio :label="2"> 标签标记 </el-radio> -->
+                        <el-radio :label="3"> 三维显示 </el-radio>
+                      </el-radio-group>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+                <el-checkbox
+                  class="fusion_check"
+                  v-model="result_fusion"
+                  active-value="1"
+                  inactive-value="0"
+                  label="图像融合功能"
+                  border
+                  :disabled="disabled"
+                ></el-checkbox>
               </el-row>
-              
-              <el-row>
+
+              <el-row v-if="this.result_state == 0">
                 <el-form
-                :inline="true"
-                :model="formInline"
-                class="demo-form-inline"
-              >
-              <el-col :span="16">
-                <el-form-item label="">
-                  <el-input
-                    class="item_iso_place"
-                    v-model="iso"
-                    placeholder="等值面，设置为0-255"
-                    label-width="50px"
-                  ></el-input>
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
-                <el-form-item class="item_iso_submit">
-                  <el-button type="primary" @click="iso_submit">三维重建</el-button>
-                </el-form-item>
-                </el-col>
-
-              </el-form>
+                  :inline="true"
+                  :model="formInline"
+                  class="demo-form-inline"
+                >
+                  <el-col :span="16">
+                    <el-form-item label="">
+                      <el-input
+                        class="item_iso_place"
+                        v-model="iso"
+                        placeholder="等值面设置为0-255"
+                        label-width="50px"
+                      ></el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="8">
+                    <el-form-item class="item_iso_submit">
+                      <el-button type="primary" @click="iso_submit"
+                        >三维重建</el-button
+                      >
+                    </el-form-item>
+                  </el-col>
+                </el-form>
               </el-row>
 
+              <el-row v-if="this.result_state == 1 && result_fusion == 1">
+                <div>
+                  <el-col :span="16">
+                    <span class="fusion_text">结果窗口0对应切片</span>
+                  </el-col>
+                  <el-col :span="8">
+                    <el-input
+                      v-model="result_fusion_states[0]"
+                      placeholder="结果窗口0对应切片"
+                      label-width="50px"
+                    ></el-input>
+                  </el-col>
+                </div>
+
+                <div>
+                  <el-col :span="16">
+                    <span class="fusion_text">结果窗口1对应切片</span>
+                  </el-col>
+                  <el-col :span="8">
+                    <el-input
+                      v-model="result_fusion_states[1]"
+                      placeholder="结果窗口1对应切片"
+                      label-width="50px"
+                    ></el-input>
+                  </el-col>
+                </div>
+
+                <div>
+                  <el-col :span="16">
+                    <span class="fusion_text">结果窗口2对应切片</span>
+                  </el-col>
+                  <el-col :span="8">
+                    <el-input
+                      v-model="result_fusion_states[2]"
+                      placeholder="结果窗口2对应切片"
+                      label-width="50px"
+                    ></el-input>
+                  </el-col>
+                </div>
+
+                <div>
+                  <el-col :span="16">
+                    <span class="fusion_text">结果窗口3对应切片</span>
+                  </el-col>
+                  <el-col :span="8">
+                    <el-input
+                      v-model="result_fusion_states[3]"
+                      placeholder="结果窗口3对应切片"
+                      label-width="50px"
+                    ></el-input>
+                  </el-col>
+                </div>
+              </el-row>
+
+              <el-row v-if="this.result_state == 3">
+                <div>
+                  <span class="visible_text">切片0可见性</span>
+                  <el-switch
+                    v-model="visible_states[0]"
+                    active-color="#13ce66"
+                    inactive-color="#ff4949"
+                    active-value="true"
+                    inactive-value="false"
+                  >
+                  </el-switch>
+                </div>
+
+                <div>
+                  <span class="visible_text">切片1可见性</span>
+                  <el-switch
+                    v-model="visible_states[1]"
+                    active-color="#13ce66"
+                    inactive-color="#ff4949"
+                    active-value="true"
+                    inactive-value="false"
+                  >
+                  </el-switch>
+                </div>
+
+                <div>
+                  <span class="visible_text">切片2可见性</span>
+                  <el-switch
+                    v-model="visible_states[2]"
+                    active-color="#13ce66"
+                    inactive-color="#ff4949"
+                    active-value="true"
+                    inactive-value="false"
+                  >
+                  </el-switch>
+                </div>
+              </el-row>
+              <el-row>
+                  <!-- <el-button type="danger" round>重置</el-button> -->
+
+              </el-row>
             </div>
-            <div>
-              
-            </div>
+            <div></div>
           </el-card>
 
           <el-card class="box-card" style="margin-top: 10px">
             <div slot="header">窗口0</div>
+            <div id="query0">
+              <el-select
+                v-model="data_id0"
+                filterable
+                placeholder="请选择数据集"
+              >
+                <el-option
+                  v-for="item in data_list"
+                  :key="item.title"
+                  :label="item.title"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+            </div>
+            <!-- <div id="label0">            
+              <input
+              type="file"
+              id="marks_file_input0"
+              placeholder="标签选择"
+              />
+            </div> -->
+
             <div
               v-if="information0.active"
               style="text-align: left; padding-left: 10px"
@@ -82,16 +202,40 @@
               type:{{ information0.type }}<br />
               size:{{ information0.width }}*{{ information0.height }}
             </div>
-            <input
+            <div>
+              <!-- <span>本地文件：</span> -->
+              <input
               type="file"
               id="dicom_files0"
               multiple="multiplt"
               placeholder="本地dicom文件上传"
             />
+            </div>
+            <!-- <input
+              type="file"
+              id="dicom_files0"
+              multiple="multiplt"
+              placeholder="本地dicom文件上传"
+            /> -->
           </el-card>
 
           <el-card class="box-card" style="margin-top: 10px">
             <div slot="header">窗口1</div>
+            <div id="query0">
+              <el-select
+                v-model="data_id1"
+                filterable
+                placeholder="请选择数据集"
+              >
+                <el-option
+                  v-for="item in data_list"
+                  :key="item.title"
+                  :label="item.title"
+                  :value="item.id"
+                >
+                </el-option>
+              </el-select>
+            </div>
             <div
               v-if="information1.active"
               style="text-align: left; padding-left: 10px"
@@ -110,6 +254,15 @@
 
           <el-card class="box-card" style="margin-top: 10px">
             <div slot="header">窗口2</div>
+            <el-select v-model="data_id2" filterable placeholder="请选择数据集">
+              <el-option
+                v-for="item in data_list"
+                :key="item.title"
+                :label="item.title"
+                :value="item.id"
+              >
+              </el-option>
+            </el-select>
             <div
               v-if="information2.active"
               style="text-align: left; padding-left: 10px"
@@ -125,6 +278,7 @@
               placeholder="本地dicom文件上传"
             />
           </el-card>
+          
         </el-aside>
         <el-container>
           <el-main>
@@ -135,19 +289,28 @@
               v-bind:file1="dcms1"
               v-bind:file2="dcms2"
               v-bind:result_fusion="result_fusion"
+              v-bind:marks_file0="marks_file0"
             ></FileController>
           </el-main>
           <!-- <el-footer>Footer</el-footer> -->
         </el-container>
       </el-container>
     </el-container>
-
   </div>
 </template>
 <script>
 import Controller from "@/components/Visible/Controller";
 import FileController from "@/components/Visible/FileController";
 import Information from "@/components/Visible/Information";
+
+import {
+  fetchList,
+  fetchPv,
+  createDataset,
+  updateDataset,
+  deleteDataset,
+} from "@/api/dataset";
+
 // import jquery from 'jquery';
 // global.jQuery=jquery;
 // import 'bootstrap/dist/css/bootstrap.min.css'
@@ -160,19 +323,19 @@ import Information from "@/components/Visible/Information";
 //   SourceUrlDropdown,
 // } from "./util_component/Dropdown";
 
-const defaultForm = {
-  status: "draft",
-  title: "", // 文章题目
-  content: "", // 文章内容
-  content_short: "", // 文章摘要
-  source_uri: "", // 文章外链
-  image_uri: "", // 文章图片
-  display_time: undefined, // 前台展示时间
-  id: undefined,
-  platforms: ["a-platform"],
-  comment_disabled: false,
-  importance: 0,
-};
+// const defaultForm = {
+//   status: "draft",
+//   title: "", // 文章题目
+//   content: "", // 文章内容
+//   content_short: "", // 文章摘要
+//   source_uri: "", // 文章外链
+//   image_uri: "", // 文章图片
+//   display_time: undefined, // 前台展示时间
+//   id: undefined,
+//   platforms: ["a-platform"],
+//   comment_disabled: false,
+//   importance: 0,
+// };
 
 export default {
   name: "VisiblePage",
@@ -188,8 +351,12 @@ export default {
       dcms2: "",
       ratio: "",
 
+      marks_file0:"",
+      marks_file1:"",
+      marks_file2:"",
+
       result_fusion: Number,
-      postForm: Object.assign({}, defaultForm),
+      // postForm: Object.assign({}, defaultForm),
       result_state: Number, //0代表体渲染，1代表融合，2代表标签
 
       disabled: Boolean,
@@ -199,11 +366,34 @@ export default {
       information1: "",
       information2: "",
 
-      iso:'',
-      iso_change:Number,
+      iso: "",
+      iso_change: Number,
+
+      visible_states: Array,
+
+      //查询数据集部分
+      listLoading: true,
+      listQuery: {
+        page: 1,
+        limit: 20,
+        importance: undefined,
+        title: undefined,
+        type: undefined,
+        sort: "+id",
+        sources: [],
+        body: [],
+        format: [],
+        model: [],
+      },
+
+      data_list: Array,
+      total_data_list: Array,
+      data_id0: "",
+      data_id1: "",
+      data_id2: "",
 
       //作为store
-      // result_fusion_states: Array,
+      result_fusion_states: Array,
       // result_wnd_state:Number,
 
       // labels:Array,
@@ -212,6 +402,8 @@ export default {
     };
   },
   created() {
+    this.result_fusion_states = [0, 1, 1, 0];
+    this.visible_states = new Array([true, true, true]);
     this.iso_change = 32;
     this.informations = new Array(3);
     for (let i = 0; i < this.informations.length; i++) {
@@ -258,9 +450,14 @@ export default {
 
     // this.result_fusion_states = new Array([-1,-1,-1,-1]);
     // this.labels = this.get_rand_labels(512,512);
+
+    this.get_list();
   },
   mounted() {
     // this.matting_ons = new Array([false,false,false]);
+    // document
+    //   .getElementById("marks_file_input0")
+    //   .addEventListener("change", this.handleLabelSelect0);
 
     document
       .getElementById("dicom_files0")
@@ -274,6 +471,17 @@ export default {
   },
 
   methods: {
+    get_list() {
+      this.listLoading = true;
+      fetchList(this.listQuery).then((response) => {
+        this.data_list = response.data.items;
+        this.total_data_list = response.data.total;
+        // this.sourcesOptions = response.data.option.sourceOptions
+        // this.bodyOptions = response.data.option.bodyOptions
+        // this.formatOptions = response.data.option.formatOptions
+        this.listLoading = false;
+      });
+    },
     get_dcm_information(data) {
       this.informations[data.window] = data;
 
@@ -287,6 +495,11 @@ export default {
     },
 
     handleUIFileSelect0(file, file_list) {},
+    handleLabelSelect0(evt){
+      evt.stopPropagation();
+      evt.preventDefault();
+      this.marks_file0 = evt.target.files[0];
+    },
 
     handleFileSelect0(evt) {
       // console.log(1);
@@ -312,14 +525,16 @@ export default {
       // const dicom = evt.target.files[0];
       // this.imgs = new Array(this.dicoms0.length);
     },
-    iso_submit(){
-      if (this.iso == undefined || this.iso == '') this.iso = 32;
+    iso_submit() {
+      if (this.iso == undefined || this.iso == "") this.iso = 32;
       this.iso_change = this.iso;
 
       // if(this.iso==undefined)this.iso=32;
       // this.iso_change = this.iso;
-
-    }
+    },
+    query_data(id) {
+      return "";
+    },
   },
   computed: {
     // result_fusion_states:{
@@ -334,9 +549,6 @@ export default {
     // }
   },
   watch: {
-    dcms0(n_d) {
-      // console.log(n_d);
-    },
     result_state(new_state) {
       if (new_state == 1) {
         // this.$store.commit("visible/RESET_FUSION_STATES", [0, 1, 1, 0]);
@@ -347,15 +559,44 @@ export default {
       this.$store.commit("visible/RESET_RESULT_VIEW_STATE", new_state);
     },
     result_fusion(new_fusion, old_fusion) {
+      // console.log(this.result_fusion);
       if (new_fusion == 1) {
         // this.result_fusion_states = [0,1,1,0];//默认值
         this.$store.commit("visible/RESET_FUSION_STATES", [0, 1, 1, 0]);
-        this.disabled = false;
+        // this.disabled = false;
       } else if (new_fusion == 0) {
         // this.result_fusion_states = [-1,-1,-1,-1];//默认值
         this.$store.commit("visible/RESET_FUSION_STATES", [-1, -1, -1, -1]);
-        this.disabled = true;
+        // this.disabled = true;
       }
+    },
+
+    result_fusion_states(new_states) {
+      if (this.result_fusion == 1) {
+        this.$store.commit("visible/RESET_FUSION_STATES", new_states);
+      }
+    },
+
+    visible_states(new_states) {
+      // console.log(new_states)
+      this.$store.commit("visible/RESET_VISIBLE_STATES", new_states);
+      // console.log(this.$store.getters.visible_states);
+    },
+
+    listLoading(new_l) {
+      if (new_l == false) {
+        // console.log(this.data_list,this.total_data_list)
+      }
+    },
+
+    data_id0(new_id) {
+      file0 = this.query_data(new_id);
+    },
+    data_id1(new_id) {
+      file1 = this.query_data(new_id);
+    },
+    data_id2(new_id) {
+      file2 = this.query_data(new_id);
     },
   },
 };
@@ -452,9 +693,8 @@ body > .el-container {
   background: #b3c0d1;
 }
 .el-row {
-    margin-bottom: 10px;
-
-  }
+  margin-bottom: 10px;
+}
 // .item_iso_place{
 //   width: 50%;
 // }
@@ -463,5 +703,4 @@ body > .el-container {
 // }
 </style>
 <style lang="css">
-
 </style>

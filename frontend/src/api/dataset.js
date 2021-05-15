@@ -47,3 +47,11 @@ export function deleteDataset(data) {
     data
   })
 }
+
+export function mergeFile(data) {
+  return request({
+    url: '/dataset/mergeFile',
+    method: 'post',
+    data
+  })
+}

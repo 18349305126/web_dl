@@ -17,9 +17,7 @@
                   label="三维重建功能"
                   border
                 ></el-checkbox>
-              </el-row>
-
-              <el-row>
+   
                 <el-form
                   :inline="true"
                   :model="formInline"
@@ -127,8 +125,9 @@ export default {
       information1: "",
       information2: "",
 
-      iso: '',
+      iso: "",
       iso_change: Number,
+
 
       //作为store
       // result_fusion_states: Array,
@@ -243,7 +242,7 @@ export default {
       // this.imgs = new Array(this.dicoms0.length);
     },
     iso_submit() {
-      if (this.iso == undefined || this.iso == '') this.iso = 32;
+      if (this.iso == undefined || this.iso == "") this.iso = 32;
 
       this.iso_change = this.iso;
     },

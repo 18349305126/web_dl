@@ -2,8 +2,9 @@
   <div class="container">
     <div class="col-md-6">
       <el-row :gutter="10">
-        <el-col :span="12" style="text-align:center;">
-            <h3 style="margin: 0;line-height: 30px;">窗口0</h3>
+        <el-col :span="12" style="text-align: center">
+          <h3 style="margin: 0; line-height: 30px">窗口0</h3>
+
           <div v-bind:style="getStyle2()">
             <!-- <el-button type="primary" icon="el-icon-view"></el-button> -->
 
@@ -22,12 +23,13 @@
             </el-slider>
           </div>
         </el-col>
-        <el-col 
-            v-loading="loading_vers_normals" 
-            element-loading-text="后台正在快马加鞭处理，请稍等！"
-            element-loading-background="rgba(0, 0, 0, 0.8)" 
-            :span="12">
-            <h3 style="margin: 0;line-height: 30px;">结果窗口</h3>
+        <el-col
+          v-loading="loading_vers_normals"
+          element-loading-text="后台正在快马加鞭处理，请稍等！"
+          element-loading-background="rgba(0, 0, 0, 0.8)"
+          :span="12"
+        >
+          <h3 style="margin: 0; line-height: 30px">结果窗口</h3>
           <div v-bind:style="getStyle2()">
             <!-- <el-slider v-model="x_index" :max="this.lens[1] - 1" show-input>
             </el-slider> -->
@@ -42,15 +44,18 @@
                 v-bind:mat2="result_mats[2]"
                 v-bind:width="wnd_w"
                 v-bind:height="wnd_h"
-
                 v-bind:mat0_row_spacing="pix_row_spacings[0]"
                 v-bind:mat0_col_spacing="pix_col_spacings[0]"
-
-                v-bind:vers = "vers"
-                v-bind:normals = "normals"
-
-                v-bind:label_mat = "label_mat"
-                v-bind:marks = "marks"
+                v-bind:vers="vers"
+                v-bind:normals="normals"
+                v-bind:label_mat="label_mat"
+                v-bind:marks="marks"
+                v-bind:z_index="z_index - lens[0] / 2"
+                v-bind:x_index="x_index - lens[1] / 2"
+                v-bind:y_index="y_index - lens[2] / 2"
+                v-bind:z_mat="z_mat"
+                v-bind:x_mat="x_mat"
+                v-bind:y_mat="y_mat"
               ></ResultWindow>
             </div>
             <el-slider
@@ -78,7 +83,7 @@
 
       <el-row>
         <el-col :span="12">
-            <h3 style="margin: 0;line-height: 30px;">窗口2</h3>
+          <h3 style="margin: 0; line-height: 30px">窗口2</h3>
           <div v-bind:style="getStyle2()">
             <div>
               <VisibleWindow
@@ -90,13 +95,13 @@
                 v-bind:mat_col_spacing="pix_col_spacings[1]"
               ></VisibleWindow>
             </div>
-              <el-slider v-model="x_index" :max="this.lens[1] - 1" show-input>
+            <el-slider v-model="x_index" :max="this.lens[1] - 1" show-input>
             </el-slider>
           </div>
         </el-col>
 
         <el-col :span="12">
-            <h3 style="margin: 0;line-height: 30px;">窗口3</h3>
+          <h3 style="margin: 0; line-height: 30px">窗口3</h3>
           <div v-bind:style="getStyle2()">
             <!-- <input type="file" id="dicom_flies2" multiple="multiplt" placeholder="本地dicom文件上传"/> -->
 
@@ -121,18 +126,16 @@
 </template>
 
 <script>
-
 import VisibleWindow from "./window/VisibleWindow";
 import ResultWindow from "./window/ResultWindow";
 
-import * as math from "mathjs";
-import * as tf from "@tensorflow/tfjs";
-import sizeof from "object-sizeof";
+// import * as math from "mathjs";
+// import * as tf from "@tensorflow/tfjs";
+// import sizeof from "object-sizeof";
 
 // // //引入 cornerstone,dicomParser,cornerstoneWADOImageLoader
 // import * as cornerstone from "cornerstone-core";
 // import * as dicomParser from "dicom-parser";
-
 
 // // 不建议 npm 安装 cornerstoneWADOImageLoader 如果你做了 会很头疼
 // import * as cornerstoneWADOImageLoader from "../../../static/dist/cornerstoneWADOImageLoader.js";
@@ -177,7 +180,14 @@ import sizeof from "object-sizeof";
 export default {
   name: "Controller",
   components: { VisibleWindow, ResultWindow },
-  props: [ "raws", "raw_change", "vers","normals","marks", "loading_vers_normals"],
+  props: [
+    "raws",
+    "raw_change",
+    "vers",
+    "normals",
+    "marks",
+    "loading_vers_normals",
+  ],
   data() {
     return {
       //窗口参数的设置
@@ -189,8 +199,8 @@ export default {
         dcm2: Boolean,
       },
 
-      wnd_w: 350,
-      wnd_h: 350,
+      wnd_w: 320,
+      wnd_h: 320,
 
       //dicom文件的数据
       // dicoms0: "", //存储所有dicom文件
@@ -218,6 +228,10 @@ export default {
       x_mat: "",
       y_mat: "",
       z_mat: "",
+      // x_total_len:Number,
+      // y_total_len:Number,
+
+      // z_total_len:Number,
 
       label_mat: Array,
       // mats: Array,
@@ -241,13 +255,16 @@ export default {
 
       labels: Array,
 
-      state:Number,//-1表示无影像，0表示单张影像，1表示影像融合，2表示体渲染
+      state: Number, //-1表示无影像，0表示单张影像，1表示影像融合，2表示体渲染
+
+      slices: Array,
       // finishes: Array,
     };
   },
   created() {
     // this.x_len = 0;
     // this.y_len = 0;
+    this.slices = new Array([0, 0, 0]);
 
     this.state = -1;
     this.read_nums = new Array([0, 0, 0]);
@@ -290,12 +307,10 @@ export default {
 
     this.read_num = 0;
     this.z_index = 0;
-    this.slice_nums = new Array([0,0,0]);
+    this.slice_nums = new Array([0, 0, 0]);
     // this.dicoms0_num = 1;
   },
-  mounted() {
-
-  },
+  mounted() {},
   methods: {
     // handleFileSelect(evt) {
     //   // console.log(111);
@@ -504,17 +519,21 @@ export default {
       return mat;
     },
 
-    min(arr){
+    min(arr) {
       let min = 10000;
       for (let i = 0; i < arr.length; i++) {
-        if (arr[i] > 1 && arr[i] < min)
-          min = arr[i];
+        if (arr[i] > 1 && arr[i] < min) min = arr[i];
       }
       return min;
     },
 
-    overlay(){
-      if (this.active_state.dcm0 + this.active_state.dcm1 + this.active_state.dcm2 > 1 ){
+    overlay() {
+      if (
+        this.active_state.dcm0 +
+          this.active_state.dcm1 +
+          this.active_state.dcm2 >
+        1
+      ) {
         if (this.active_state.dcm0) {
           this.result_mats[0] = this.mats0;
         }
@@ -527,11 +546,16 @@ export default {
         if (this.active_state.dcm2) {
           this.result_mats[2] = this.mats2;
         }
-      } 
+      }
     },
 
-    label(){
-      if (this.active_state.dcm0 + this.active_state.dcm1 + this.active_state.dcm2 == 1 ){
+    label() {
+      if (
+        this.active_state.dcm0 +
+          this.active_state.dcm1 +
+          this.active_state.dcm2 ==
+        1
+      ) {
         this.pix_row_spacings[0] = this.x_pix_spacing;
         this.pix_col_spacings[0] = this.y_pix_spacing;
         if (this.active_state.dcm0) {
@@ -543,7 +567,7 @@ export default {
           this.label_mat = this.mats1;
           this.result_len = this.raws[1][0][0].length;
         }
-         if (this.active_state.dcm2) {
+        if (this.active_state.dcm2) {
           this.label_mat = this.mats2;
           this.result_len = this.raws[2][0][0].length;
         }
@@ -558,53 +582,171 @@ export default {
       }
       return count;
     },
-  },
-  computed:{
+    resize_m(mat, x_alp, y_alp) {
+      let x_len = mat.length;
+      let y_len = mat[0].length;
+      // console.log(x_len,y_len)
 
+      let resize_x_len = Math.round(x_len * x_alp);
+      let resize_y_len = Math.round(y_len * y_alp);
+
+      let resize_mat = new Array(resize_x_len);
+      for (let i = 0; i < resize_x_len; i++) {
+        resize_mat[i] = new Array(resize_y_len);
+        for (let j = 0; j < resize_y_len; j++) {
+          let x = i / x_alp;
+          let y = j / y_alp;
+          let x0 = Math.floor(x);
+          let y0 = Math.floor(y);
+          let x1 = Math.ceil(x);
+          let y1 = Math.ceil(y);
+          let det = (y1 - y0) * (x1 - x0);
+
+          if (x0 == x1 || y0 == y1) resize_mat[i][j] = mat[x0][y0];
+          else {
+            resize_mat[i][j] =
+              0.25 * mat[x0][y0] +
+              0.25 * mat[x1][y0] +
+              0.25 * mat[x0][y1] +
+              0.25 * mat[x1][y1];
+          }
+          // resize_raw[i][j][k] =
+          //   (((y1 - y) * (x1 - x)) / det) * raw[x0][y0][k] +
+          //   (((y1 - y) * (x - x0)) / det) * raw[x1][y0][k] +
+          //   (((y - y0) * (x1 - x)) / det) * raw[x0][y1][k] +
+          //   (((y - y0) * (x - x0)) / det) * raw[x1][y1][k];
+        }
+      }
+      return resize_mat;
+    },
+  },
+  computed: {
+    // visible_states(){
+    //   return this.$store.getters.visible_states;
+    // }
   },
   watch: {
     z_index(new_z, old_z) {
-      if (this.active_state.dcm0 + this.active_state.dcm1 + this.active_state.dcm2 == 1) {//当前只有一张影像
+      if (
+        this.active_state.dcm0 +
+          this.active_state.dcm1 +
+          this.active_state.dcm2 ==
+        1
+      ) {
+        //当前只有一张影像
         if (this.active_state.dcm0 == true) {
-          this.mats0 = this.getSliceZ(new_z,this.raws[0]);
+          this.mats0 = this.getSliceZ(new_z, this.raws[0]);
+          // this.z_mat = this.mats0;
+          if (this.$store.getters.visible_states[0] == "true") {
+            this.z_mat = this.resize_m(
+              this.mats0,
+              this.x_pix_spacing,
+              this.y_pix_spacing
+            );
+          } else {
+            this.z_mat = [
+              [0, 0],
+              [0, 0],
+            ];
+          }
+          // this.z_mat = this.resize_m(
+          //   this.mats0,
+          //   this.x_pix_spacing,
+          //   this.y_pix_spacing
+          // );
         }
-      }
-      else if(this.active_state.dcm0 + this.active_state.dcm1 + this.active_state.dcm2 > 1){
+      } else if (
+        this.active_state.dcm0 +
+          this.active_state.dcm1 +
+          this.active_state.dcm2 >
+        1
+      ) {
         if (this.active_state.dcm0 == true) {
-          this.mats0 = this.getSliceZ(new_z,this.raws[0]);
+          this.mats0 = this.getSliceZ(new_z, this.raws[0]);
         }
       }
     },
-    x_index(new_x,old_x){
-      if (this.active_state.dcm0 + this.active_state.dcm1 + this.active_state.dcm2 == 1) {//当前只有一张影像
-        if (this.active_state.dcm0 == true) {//0号影像加载
-          this.mats1 = this.getSliceX(new_x,this.raws[0]);
+    x_index(new_x, old_x) {
+      if (
+        this.active_state.dcm0 +
+          this.active_state.dcm1 +
+          this.active_state.dcm2 ==
+        1
+      ) {
+        //当前只有一张影像
+        if (this.active_state.dcm0 == true) {
+          //0号影像加载
+          this.mats1 = this.getSliceX(new_x, this.raws[0]);
+          // this.x_mat = this.mats1;
+          if (this.$store.getters.visible_states[1] == "true") {
+            this.x_mat = this.resize_m(
+              this.mats1,
+              this.y_pix_spacing,
+              this.z_pix_spacing
+            );
+          } else {
+            this.x_mat = [
+              [0, 0],
+              [0, 0],
+            ];
+          }
         }
-        if(this.active_state.dcm1 == true){//1号影像加载
-          this.mats1 = this.getSliceZ(new_x,this.raws[1]);
+        if (this.active_state.dcm1 == true) {
+          //1号影像加载
+          this.mats1 = this.getSliceZ(new_x, this.raws[1]);
         }
-      }
-      else if(this.active_state.dcm0 + this.active_state.dcm1 + this.active_state.dcm2 > 1){
-        if(this.active_state.dcm1 == true){//1号影像加载
-          this.mats1 = this.getSliceZ(new_x,this.raws[1]);
+      } else if (
+        this.active_state.dcm0 +
+          this.active_state.dcm1 +
+          this.active_state.dcm2 >
+        1
+      ) {
+        if (this.active_state.dcm1 == true) {
+          //1号影像加载
+          this.mats1 = this.getSliceZ(new_x, this.raws[1]);
         }
       }
     },
-    y_index(new_y,old_y){
-      if (this.active_state.dcm0 + this.active_state.dcm1 + this.active_state.dcm2 == 1) {//当前只有一张影像
-        if (this.active_state.dcm0 == true) {//0号影像加载
-          this.mats2 = this.getSliceY(new_y,this.raws[0]);
+    y_index(new_y, old_y) {
+      if (
+        this.active_state.dcm0 +
+          this.active_state.dcm1 +
+          this.active_state.dcm2 ==
+        1
+      ) {
+        //当前只有一张影像
+        if (this.active_state.dcm0 == true) {
+          //0号影像加载
+          this.mats2 = this.getSliceY(new_y, this.raws[0]);
+          // this.y_mat = this.mats2;
+          if (this.$store.getters.visible_states[2] == "true") {
+            this.y_mat = this.resize_m(
+              this.mats2,
+              this.x_pix_spacing,
+              this.z_pix_spacing
+            );
+          } else {
+            this.y_mat = [
+              [0, 0],
+              [0, 0],
+            ];
+          }
         }
-        if(this.active_state.dcm2 == true){//2号影像加载
-          this.mats2 = this.getSliceZ(new_y,this.raws[1]);
+        if (this.active_state.dcm2 == true) {
+          //2号影像加载
+          this.mats2 = this.getSliceZ(new_y, this.raws[1]);
+        }
+      } else if (
+        this.active_state.dcm0 +
+          this.active_state.dcm1 +
+          this.active_state.dcm2 >
+        1
+      ) {
+        if (this.active_state.dcm2 == true) {
+          //2号影像加载
+          this.mats2 = this.getSliceZ(new_y, this.raws[1]);
         }
       }
-      else if(this.active_state.dcm0 + this.active_state.dcm1 + this.active_state.dcm2 > 1){
-        if(this.active_state.dcm2 == true){//2号影像加载
-          this.mats2 = this.getSliceZ(new_y,this.raws[1]);
-        }
-      }
-      
     },
 
     result_index(new_idx, old_idx) {
@@ -634,7 +776,7 @@ export default {
         if (this.raws_num_test(this.raws) == 1) {
           for (let wnd_id = 0; wnd_id < this.raws.length; wnd_id++) {
             if (this.raws[wnd_id] != undefined) {
-              this.labels[wnd_id] = 'z';
+              this.labels[wnd_id] = "z";
               this.lens[wnd_id] = this.raws[wnd_id][0][0].length;
               this.pix_row_spacings[wnd_id] = this.x_pix_spacing;
               this.pix_col_spacings[wnd_id] = this.y_pix_spacing;
@@ -642,15 +784,15 @@ export default {
               switch (wnd_id) {
                 case 0:
                   this.active_state.dcm0 = true;
-                  this.labels[1] = 'x';
-                  this.labels[2] = 'y';
+                  this.labels[1] = "x";
+                  this.labels[2] = "y";
 
                   this.lens[1] = this.raws[wnd_id].length;
                   this.lens[2] = this.raws[wnd_id][0].length;
                   this.z_index = Math.round(this.lens[0] / 2);
                   this.x_index = Math.round(this.lens[1] / 2);
                   this.y_index = Math.round(this.lens[2] / 2);
-                  
+
                   this.mats0 = this.getSliceZ(this.z_index, this.raws[wnd_id]);
 
                   this.mats1 = this.getSliceX(this.x_index, this.raws[wnd_id]);
@@ -666,7 +808,7 @@ export default {
                   this.active_state.dcm1 = true;
                   this.x_index = Math.round(this.lens[1] / 2);
                   this.mats1 = this.getSliceZ(this.x_index, this.raws[wnd_id]);
-                  
+
                   break;
                 case 2:
                   this.active_state.dcm2 = true;
@@ -678,16 +820,13 @@ export default {
               }
             }
           }
-          if(this.$store.getters.result_view_state == 2){
+          if (this.$store.getters.result_view_state == 2) {
             this.label();
           }
-
-        }
-
-        else if(this.raws_num_test(this.raws) > 1){
+        } else if (this.raws_num_test(this.raws) > 1) {
           for (let wnd_id = 0; wnd_id < this.raws.length; wnd_id++) {
             if (this.raws[wnd_id] != undefined) {
-              this.labels[wnd_id] = 'z';
+              this.labels[wnd_id] = "z";
               this.lens[wnd_id] = this.raws[wnd_id][0][0].length;
               this.slice_nums[wnd_id] = this.raws[wnd_id][0][0].length;
               this.pix_row_spacings[wnd_id] = this.x_pix_spacing;
@@ -696,24 +835,23 @@ export default {
                 case 0:
                   this.active_state.dcm0 = true;
                   this.z_index = Math.round(this.lens[0] / 2);
-                  this.mats0 = this.getSliceZ(this.z_index,this.raws[wnd_id]);
-                break;
+                  this.mats0 = this.getSliceZ(this.z_index, this.raws[wnd_id]);
+                  break;
                 case 1:
                   this.active_state.dcm1 = true;
-                    this.x_index = Math.round(this.lens[1] / 2);
+                  this.x_index = Math.round(this.lens[1] / 2);
 
-                  this.mats1 = this.getSliceZ(1,this.raws[wnd_id]);
-                break;
+                  this.mats1 = this.getSliceZ(1, this.raws[wnd_id]);
+                  break;
                 case 2:
                   this.y_index = Math.round(this.lens[2] / 2);
 
                   this.active_state.dcm2 = true;
-                  this.mats2 = this.getSliceZ(y_index,this.raws[wnd_id]);
-                break;
+                  this.mats2 = this.getSliceZ(y_index, this.raws[wnd_id]);
+                  break;
                 default:
-                break;
+                  break;
               }
-
             }
           }
           this.result_len = this.min(this.slice_nums);
@@ -721,14 +859,51 @@ export default {
         }
       }
     },
-    "$store.state.visible.result_view_state"(new_state){
-      if(new_state == 2){
+    "$store.state.visible.result_view_state"(new_state) {
+      if (new_state == 2) {
         this.label();
       }
-
     },
-        
-   
+    "$store.state.visible.visible_states"(new_states) {
+      if (new_states[0] == "true") {
+        this.z_mat = this.resize_m(
+          this.mats0,
+          this.x_pix_spacing,
+          this.y_pix_spacing
+        );
+      } else {
+        this.z_mat = [
+          [0, 0],
+          [0, 0],
+        ];
+      }
+
+      if (new_states[1] == "true") {
+        this.x_mat = this.resize_m(
+          this.mats1,
+          this.y_pix_spacing,
+          this.z_pix_spacing
+        );
+      } else {
+        this.x_mat = [
+          [0, 0],
+          [0, 0],
+        ];
+      }
+
+      if (new_states[2] == "true") {
+        this.y_mat = this.resize_m(
+          this.mats2,
+          this.x_pix_spacing,
+          this.z_pix_spacing
+        );
+      } else {
+        this.y_mat = [
+          [0, 0],
+          [0, 0],
+        ];
+      }
+    },
   },
 };
 </script>

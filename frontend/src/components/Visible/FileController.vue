@@ -28,12 +28,12 @@ import { testRender } from "@/api/visible";
 import axios from "axios";
 //axios.defaults.baseURL = process.env.VUE_APP_BASE_API; //关键代码
 axios.defaults.baseURL = "http://localhost:8080"; //关键代码
-import { dot } from "mathlab";
-import { min, Tensor } from "@tensorflow/tfjs";
+// import { dot } from "mathlab";
+// import { min, Tensor } from "@tensorflow/tfjs";
 
 import * as cornerstone from "cornerstone-core";
 import * as dicomParser from "dicom-parser";
-import * as math from "mathjs";
+// import * as math from "mathjs";
 
 // 不建议 npm 安装 cornerstoneWADOImageLoader 如果你做了 会很头疼
 import * as cornerstoneWADOImageLoader from "../../../public/static/dist/cornerstoneWADOImageLoader.js";
@@ -79,7 +79,7 @@ if (!cornerstoneWADOImageLoader.webWorkerManager.config) {
 export default {
   name: "FileController",
   components: { VisibleWindow, ResultWindow, Controller },
-  props: ["file0", "file1", "file2", "out_raws","iso"],
+  props: ["file0", "file1", "file2", "out_raws","iso","marks_file0"],
   data() {
     return {
       //窗口参数的设置
@@ -124,6 +124,16 @@ export default {
       change: Boolean, //由于无法监控数组，所以用这个来向controller传递raw改变的信息
 
       tot_marks: Array,
+      x_render_scale:Number,
+      y_render_scale:Number,
+      z_render_scale:Number,
+
+      marks0:Array
+
+      // x_pix_spacing:Number,
+      // y_pix_spacing:Number,
+      // z_pix_spacing:Number,
+
       // back_test: Number,
       // result_wnd_state:Number,
 
@@ -133,6 +143,8 @@ export default {
   created() {
     // this.x_len = 0;
     // this.y_len = 0;
+
+
     this.back_test = 0;
     this.dicoms_nums = new Array([0, 0, 0]);
     this.read_nums = new Array([0, 0, 0]);
@@ -153,6 +165,10 @@ export default {
     this.finished0 = false;
     this.finished1 = false;
     this.finished2 = false;
+
+    this.x_render_scale = 0.2;
+    this.y_render_scale = 0.2;
+    this.z_render_scale = 0.5;
   },
   mounted() {
     // console.log(cornerstoneWADOImageLoader);
@@ -178,6 +194,9 @@ export default {
       // console.log(this.read_num);
       cornerstone.loadAndCacheImage(imageId).then(
         function (image) {
+          // console.log(image);
+          // console.log(images.getPixelData());
+
           _this.imgs[idx][z_idx] = image;
           _this.read_nums[idx]++;
 
@@ -266,6 +285,7 @@ export default {
     },
 
     rebuild3D(images, x, y, z) {
+      // console.log(images[0].getPixelData().length);
       let raws = new Array(x);
       for (let i = 0; i < x; i++) {
         raws[i] = new Array(y);
@@ -331,6 +351,48 @@ export default {
                 0.25 * raw[x1][y0][k] +
                 0.25 * raw[x0][y1][k] +
                 0.25 * raw[x1][y1][k];
+            }
+            // resize_raw[i][j][k] =
+            //   (((y1 - y) * (x1 - x)) / det) * raw[x0][y0][k] +
+            //   (((y1 - y) * (x - x0)) / det) * raw[x1][y0][k] +
+            //   (((y - y0) * (x1 - x)) / det) * raw[x0][y1][k] +
+            //   (((y - y0) * (x - x0)) / det) * raw[x1][y1][k];
+          }
+        }
+      }
+      return resize_raw;
+    },
+
+    resize_r_total(raw, x_alp, y_alp, z_alp) {
+      let x_len = raw.length;
+      let y_len = raw[0].length;
+      let z_len = raw[0][0].length;
+
+      let resize_x_len = Math.round(x_len * x_alp);
+      let resize_y_len = Math.round(y_len * y_alp);
+      let resize_z_len = Math.round(z_len * z_alp);
+
+      let resize_raw = new Array(resize_x_len);
+      for (let i = 0; i < resize_x_len; i++) {
+        resize_raw[i] = new Array(resize_y_len);
+        for (let j = 0; j < resize_y_len; j++) {
+          resize_raw[i][j] = new Uint16Array(resize_z_len);
+          for (let k = 0; k < z_len; k++) {
+            let x = i / x_alp;
+            let y = j / y_alp;
+            let z = k / z_alp;
+            let x0 = Math.floor(x);
+            let y0 = Math.floor(y);
+            let z0 = Math.floor(z);
+            let x1 = Math.ceil(x);
+            let y1 = Math.ceil(y);
+            let z1 = Math.ceil(z);
+
+            if (x0 == x1 || y0 == y1 || z0==z1) resize_raw[i][j][k] = raw[x0][y0][z0];
+            else {
+              resize_raw[i][j][k] = (raw[x0][y0][z0] + raw[x1][y0][z0] + raw[x0][y1][z0] + raw[x1][y1][z0] +
+              raw[x0][y0][z1] + raw[x1][y0][z1] + raw[x0][y1][z1] + raw[x1][y1][z1])*0.125;
+   
             }
             // resize_raw[i][j][k] =
             //   (((y1 - y) * (x1 - x)) / det) * raw[x0][y0][k] +
@@ -445,10 +507,12 @@ export default {
     },
 
     read_vers(url) {
+      let formData = new FormData();
+      formData.append("x",1);
       axios({
         url: url,
         method: "post",
-        data: {},
+        data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -469,10 +533,12 @@ export default {
       });
     },
     read_normals(url) {
+        let formData = new FormData();
+      formData.append("x",1);
       axios({
         url: url,
         method: "post",
-        data: {},
+        data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -604,8 +670,9 @@ export default {
       }
     },
 
-    post_raw(raw, wnd_id, x_scale, y_scale, iso) {
-      raw = this.resize_r(raw, x_scale, y_scale);
+    post_raw(raw, wnd_id, x_scale, y_scale, z_scale,iso) {
+      // raw = this.resize_r(raw, x_scale, y_scale);
+      raw = this.resize_r_total(raw, x_scale, y_scale,z_scale);
       let formData = new FormData();
       let x_len = raw.length;
       let y_len = raw[0].length;
@@ -618,7 +685,7 @@ export default {
       // let file = new File( raw, this.StringFormat("raw{0}", wnd_id));
 
       // let file = this.file0[0];
-      console.log(file);
+      // console.log(file);
 
       formData.append("file", file);
       // formData.append("x_len",x_len);
@@ -721,7 +788,9 @@ export default {
           // );
 
           // this.post_list([1,1]);
-          this.post_raw(this.raws[0], 0, 0.3, 0.3, 30);
+          // this.post_raw(this.raws[0], 0, 0.25, 0.25, 32);
+          this.post_raw(this.raws[0], 0, this.x_render_scale, this.y_render_scale, this.z_render_scale, 32);
+
         }
       }
     },
@@ -752,6 +821,22 @@ export default {
         }
       }
     },
+
+    marks_file0(new_mark){
+      const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(new_mark);
+      const _this = this;
+      // console.log(this.read_num);
+      cornerstone.loadAndCacheImage(imageId).then(
+        function (image) {
+          console.log(image);
+          console.log(image.getPixelData());
+        },
+        function (err) {
+          alert(err);
+        }
+      );
+
+    },
     finished0(new_f, old_f) {
       if (new_f) {
         let wnd_id = 0;
@@ -765,9 +850,9 @@ export default {
         this.imgs[wnd_id] = null;
 
         this.get_vers_norms(this.raws[wnd_id]);
-        setTimeout(() => {
-          this.finished0 = false;
-        }, 2000);
+        // setTimeout(() => {
+        //   this.finished0 = false;
+        // }, 2000);
 
         // this.finished0 = false;
         // this.post_list(this.raws[0]);
@@ -786,10 +871,10 @@ export default {
         // this.imgs[wnd_id].destroy();
         this.imgs[wnd_id] = null;
 
-        setTimeout(() => {
-          this.finished1 = false;
-        }, 2000);
-        // this.finished1 = false;
+        // setTimeout(() => {
+        //   this.finished1 = false;
+        // }, 2000);
+        // // this.finished1 = false;
       }
     },
     finished2(new_f, old_f) {
@@ -804,20 +889,21 @@ export default {
         this.file2 = null;
         // this.imgs[wnd_id].destroy();
         this.imgs[wnd_id] = null;
-        setTimeout(() => {
-          this.finished2 = false;
-        }, 2000);
-        // this.finished2 == false;
+        // setTimeout(() => {
+        //   this.finished2 = false;
+        // }, 2000);
+        // // this.finished2 == false;
       }
     },
     iso(new_iso){
 
-      if(Object.prototype.toString.call(new_iso) !== '[object Number]'){
-        new_iso = 32;
-      } 
+      // if(Object.prototype.toString.call(new_iso) != '[object Number]'){
+      //   console.log(Object.prototype.toString.call(new_iso));
+      //   new_iso = 32;
+      // } 
       console.log(new_iso);
       if(this.vers!=undefined && this.normals!=undefined){
-        this.post_raw(this.raws[0], 0, 0.3, 0.3, new_iso);
+        this.post_raw(this.raws[0], 0, this.x_render_scale, this.y_render_scale, this.z_render_scale,new_iso);
 
       }
     }

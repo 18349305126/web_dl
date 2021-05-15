@@ -22,6 +22,9 @@ import * as filters from './filters' // global filters
 // 如果想要中文版 element-ui，按如下方式声明
 Vue.use(ElementUI)
 
+import uploader from 'vue-simple-uploader'
+Vue.use(uploader)
+
 // register global utility filters
 Object.keys(filters).forEach(key => {
   Vue.filter(key, filters[key])

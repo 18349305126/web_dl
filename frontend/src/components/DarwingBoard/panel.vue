@@ -509,7 +509,6 @@
                 console.log(this.$route)
                 this.$nextTick(() => {
                     loadModel(this.data.model_id).then(res => {
-                        // console.log(res);
                             this.data.nodeList = res.data.nodeList
                             this.data.lineList = res.data.lineList
 

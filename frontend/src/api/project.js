@@ -111,11 +111,3 @@ export function deleteModel(data) {
     data
   })
 }
-
-export function test() {
-  return request({
-    url: '/project/model/test',
-    method: 'get',
-    // data
-  })
-}
