@@ -1,0 +1,103 @@
+POST http://localhost:8080/project/execute HTTP/1.1
+Content-Type: application/json
+
+{
+  "nodeList": [
+    {
+      "dcm_dir": "/Users/kevin/Workspace/thesis/WebDL/data/dcm",
+      "mhd_dir": "/Users/kevin/Workspace/thesis/WebDL/data/test/mhd",
+      "seg_path": "/Users/kevin/Workspace/thesis/WebDL/data/test/segment",
+      "mha_dir": null,
+      "category": null,
+      "nii_dir": null,
+      "niigz_dir": null,
+      "data_path": null,
+      "save_path": null,
+      "format": null,
+      "hsize": null,
+      "wsize": null,
+      "model_path": null,
+      "model_name": null,
+      "param": null,
+      "param_path": null,
+      "id": "17jy6lj3o",
+      "name": "dic转mhd",
+      "ico": "el-icon-odometer",
+      "left": "292px",
+      "top": "154px",
+      "type": "transform",
+      "method": "dcm2mhd"
+    },
+    {
+      "dcm_dir": null,
+      "mhd_dir": null,
+      "seg_path": null,
+      "mha_dir": null,
+      "category": null,
+      "nii_dir": null,
+      "niigz_dir": null,
+      "data_path": "/Users/kevin/Workspace/thesis/WebDL/data/test/mhd/images",
+      "save_path": "/Users/kevin/Workspace/thesis/WebDL/data/test/cut",
+      "format": "2D ",
+      "hsize": "256",
+      "wsize": "256",
+      "model_path": null,
+      "model_name": null,
+      "param": null,
+      "param_path": null,
+      "id": "9h7jsjhlsq",
+      "name": "裁剪 ",
+      "ico": "el-icon-odometer",
+      "left": "262px",
+      "top": "276px",
+      "type": "cut",
+      "method": "cut"
+    }
+  ],
+  "lineList": [
+    {
+      "from": "17jy6lj3o",
+      "to": "9h7jsjhlsq"
+    }
+  ],
+  "model_id": 201,
+  "model_name": "exec3",
+  "project_id": 101
+}
+
+###
+GET http://localhost:8080/project/4 HTTP/1.1
+
+###
+POST http://localhost:8080/project/ HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "test"
+}
+
+###
+PUT http://localhost:8080/project/4 HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "update"
+}
+
+###
+DELETE http://localhost:8080/project/4 HTTP/1.1
+
+
+###
+# python
+POST http://localhost:8000/api/transform HTTP/1.1
+Content-Type: application/json
+
+{
+  "method": "dcm2mhd",
+  "params": {
+    "path": "/Users/kevin/Workspace/thesis/WebDL/data/数据样例/0000361202",
+    "sv_path": "/Users/kevin/Workspace/thesis/WebDL/data/tmp/sv",
+    "sv_raw_path": "/Users/kevin/Workspace/thesis/WebDL/data/tmp/raw"
+  }
+}
