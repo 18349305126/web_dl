@@ -9,9 +9,10 @@
           <el-card class="box-card-component">
             <div class="choice">
               <el-row>
+                <span class="select">功能选择：</span>
                 <el-dropdown :show-timeout="100" trigger="click">
                   <el-button plain>
-                    <!-- {{ !comment_disabled ? "Comment: opened" : "Comment: closed" }} -->
+                    <!-- {{ !comment_fusion_disabled ? "Comment: opened" : "Comment: closed" }} -->
                     <span v-if="result_state == 0">三维重建</span>
                     <span v-else-if="result_state == 1">影像融合</span>
                     <!-- <span v-else-if="result_state == 2">标签标记</span> -->
@@ -33,15 +34,44 @@
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
-                <el-checkbox
+
+                <!-- <el-checkbox
                   class="fusion_check"
                   v-model="result_fusion"
                   active-value="1"
                   inactive-value="0"
                   label="图像融合功能"
                   border
-                  :disabled="disabled"
+                  :disabled="fusion_disabled"
+                ></el-checkbox> -->
+              </el-row>
+
+              <el-row>
+                <el-col :span=12>
+                   <el-checkbox
+                  class="check"
+                  size="small"
+                  v-model="result_fusion"
+                  active-value="1"
+                  inactive-value="0"
+                  label="图像融合功能"
+                  border
+                  :disabled="fusion_disabled"
                 ></el-checkbox>
+                </el-col>
+                <el-col :span=12>
+                  <el-checkbox
+                  class="check"
+                  size="small"
+                  v-model="scale"
+                  active-value="1"
+                  inactive-value="0"
+                  label="放大镜功能"
+                  border
+                  :disabled="scale_disabled"
+                ></el-checkbox>
+                </el-col>
+                
               </el-row>
 
               <el-row v-if="this.result_state == 0">
@@ -73,7 +103,7 @@
               <el-row v-if="this.result_state == 1 && result_fusion == 1">
                 <div>
                   <el-col :span="16">
-                    <span class="fusion_text">结果窗口0对应切片</span>
+                    <span class="fusion_text">结果窗口0对应切片:</span>
                   </el-col>
                   <el-col :span="8">
                     <el-input
@@ -86,7 +116,7 @@
 
                 <div>
                   <el-col :span="16">
-                    <span class="fusion_text">结果窗口1对应切片</span>
+                    <span class="fusion_text">结果窗口1对应切片:</span>
                   </el-col>
                   <el-col :span="8">
                     <el-input
@@ -99,7 +129,7 @@
 
                 <div>
                   <el-col :span="16">
-                    <span class="fusion_text">结果窗口2对应切片</span>
+                    <span class="fusion_text">结果窗口2对应切片:</span>
                   </el-col>
                   <el-col :span="8">
                     <el-input
@@ -112,7 +142,7 @@
 
                 <div>
                   <el-col :span="16">
-                    <span class="fusion_text">结果窗口3对应切片</span>
+                    <span class="fusion_text">结果窗口3对应切片:</span>
                   </el-col>
                   <el-col :span="8">
                     <el-input
@@ -283,7 +313,7 @@
         <el-container>
           <el-main>
             <FileController
-              @send_information="get_dcm_information"
+              @send_information="get_information"
               v-bind:iso="iso_change"
               v-bind:file0="dcms0"
               v-bind:file1="dcms1"
@@ -333,7 +363,7 @@ import {
 //   display_time: undefined, // 前台展示时间
 //   id: undefined,
 //   platforms: ["a-platform"],
-//   comment_disabled: false,
+//   comment_fusion_disabled: false,
 //   importance: 0,
 // };
 
@@ -356,10 +386,12 @@ export default {
       marks_file2:"",
 
       result_fusion: Number,
+      scale:Number,//放大镜功能，1说明启动
       // postForm: Object.assign({}, defaultForm),
       result_state: Number, //0代表体渲染，1代表融合，2代表标签
 
-      disabled: Boolean,
+      fusion_disabled: Boolean,
+      scale_disabled: Boolean,
 
       informations: Array,
       information0: "",
@@ -446,7 +478,9 @@ export default {
     // this.result_wnd_state = 1 ;
     this.matting_ons = new Array([0, 0, 0]);
     this.result_fusion = 0;
-    this.disabled = true;
+    this.fusion_disabled = true;
+    this.scale_disabled = true;
+    this.scale = 0;
 
     // this.result_fusion_states = new Array([-1,-1,-1,-1]);
     // this.labels = this.get_rand_labels(512,512);
@@ -482,7 +516,7 @@ export default {
         this.listLoading = false;
       });
     },
-    get_dcm_information(data) {
+    get_information(data) {
       this.informations[data.window] = data;
 
       if (data.window == 0) {
@@ -492,6 +526,7 @@ export default {
       } else if (data.window == 2) {
         this.information2 = data;
       }
+      this.scale_disabled = false;
     },
 
     handleUIFileSelect0(file, file_list) {},
@@ -506,6 +541,7 @@ export default {
       evt.stopPropagation();
       evt.preventDefault();
       this.dcms0 = evt.target.files;
+      // this.scale_disabled = false;
       // const dicom = evt.target.files[0];
       // this.imgs = new Array(this.dicoms0.length);
     },
@@ -514,6 +550,8 @@ export default {
       evt.stopPropagation();
       evt.preventDefault();
       this.dcms1 = evt.target.files;
+      // this.scale_disabled = false;
+
       // const dicom = evt.target.files[0];
       // this.imgs = new Array(this.dicoms0.length);
     },
@@ -522,6 +560,7 @@ export default {
       evt.stopPropagation();
       evt.preventDefault();
       this.dcms2 = evt.target.files;
+
       // const dicom = evt.target.files[0];
       // this.imgs = new Array(this.dicoms0.length);
     },
@@ -547,14 +586,15 @@ export default {
     //     }
     //   }
     // }
+
   },
   watch: {
     result_state(new_state) {
       if (new_state == 1) {
         // this.$store.commit("visible/RESET_FUSION_STATES", [0, 1, 1, 0]);
-        this.disabled = false;
+        this.fusion_disabled = false;
       } else if (new_state == 0) {
-        this.disabled = true;
+        this.fusion_disabled = true;
       }
       this.$store.commit("visible/RESET_RESULT_VIEW_STATE", new_state);
     },
@@ -563,11 +603,11 @@ export default {
       if (new_fusion == 1) {
         // this.result_fusion_states = [0,1,1,0];//默认值
         this.$store.commit("visible/RESET_FUSION_STATES", [0, 1, 1, 0]);
-        // this.disabled = false;
+        // this.fusion_disabled = false;
       } else if (new_fusion == 0) {
         // this.result_fusion_states = [-1,-1,-1,-1];//默认值
         this.$store.commit("visible/RESET_FUSION_STATES", [-1, -1, -1, -1]);
-        // this.disabled = true;
+        // this.fusion_disabled = true;
       }
     },
 
@@ -581,6 +621,22 @@ export default {
       // console.log(new_states)
       this.$store.commit("visible/RESET_VISIBLE_STATES", new_states);
       // console.log(this.$store.getters.visible_states);
+    },
+
+    scale(new_scale){
+      // console.log(new_scale)
+      if(new_scale ==true){
+        this.$store.commit("visible/RESET_SCALE_STATE",1);
+
+      }
+      else if(new_scale == false){
+        this.$store.commit("visible/RESET_SCALE_STATE",0);
+
+      }
+      else{
+        this.$store.commit("visible/RESET_SCALE_STATE",new_scale);
+      }
+      
     },
 
     listLoading(new_l) {
@@ -647,8 +703,9 @@ export default {
 //   padding: 10px;
 //   z-index: -1;
 // }
-.fusion_check {
+.check {
   background: rgb(255, 255, 255);
+  // size:mini
 }
 .el-header,
 .el-footer {

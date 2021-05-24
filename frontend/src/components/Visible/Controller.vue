@@ -3,7 +3,15 @@
     <div class="col-md-6">
       <el-row :gutter="10">
         <el-col :span="12" style="text-align: center">
-          <h3 style="margin: 0; line-height: 30px">窗口0</h3>
+          <h3 style="margin: 0; line-height: 30px">
+            窗口0
+            <!-- <el-switch
+              v-model="magnifying"
+              active-icon-class="el-icon-zoom-in"
+              inactive-icon-class="el-icon-circle-close"
+            >
+            </el-switch> -->
+          </h3>
 
           <div v-bind:style="getStyle2()">
             <!-- <el-button type="primary" icon="el-icon-view"></el-button> -->
@@ -12,7 +20,7 @@
             <div>
               <VisibleWindow
                 v-bind:label="labels[0]"
-                v-bind:mat="mats0"
+                v-bind:p_mat="mats0"
                 v-bind:width="wnd_w"
                 v-bind:height="wnd_h"
                 v-bind:mat_row_spacing="pix_row_spacings[0]"
@@ -83,12 +91,12 @@
 
       <el-row>
         <el-col :span="12">
-          <h3 style="margin: 0; line-height: 30px">窗口2</h3>
+          <h3 style="margin: 0; line-height: 30px">窗口1</h3>
           <div v-bind:style="getStyle2()">
             <div>
               <VisibleWindow
                 v-bind:label="labels[1]"
-                v-bind:mat="mats1"
+                v-bind:p_mat="mats1"
                 v-bind:width="wnd_w"
                 v-bind:height="wnd_h"
                 v-bind:mat_row_spacing="pix_row_spacings[1]"
@@ -101,7 +109,7 @@
         </el-col>
 
         <el-col :span="12">
-          <h3 style="margin: 0; line-height: 30px">窗口3</h3>
+          <h3 style="margin: 0; line-height: 30px">窗口2</h3>
           <div v-bind:style="getStyle2()">
             <!-- <input type="file" id="dicom_flies2" multiple="multiplt" placeholder="本地dicom文件上传"/> -->
 
@@ -109,7 +117,7 @@
             <div>
               <VisibleWindow
                 v-bind:label="labels[2]"
-                v-bind:mat="mats2"
+                v-bind:p_mat="mats2"
                 v-bind:width="wnd_w"
                 v-bind:height="wnd_h"
                 v-bind:mat_row_spacing="pix_row_spacings[2]"
@@ -259,6 +267,8 @@ export default {
 
       slices: Array,
       // finishes: Array,
+
+      magnifying: Boolean,
     };
   },
   created() {

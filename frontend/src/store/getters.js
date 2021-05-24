@@ -10,5 +10,6 @@ const getters = {
   fusion_states:state => state.visible.fusion_states,
   result_view_state:state => state.visible.result_view_state,
   visible_states:state => state.visible.visible_states,
+  scale_state: state => state.visible.scale_state,
 }
 export default getters

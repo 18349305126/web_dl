@@ -1,6 +1,6 @@
-from django.urls import path;
+from django.urls import path
 
-from api import views;
+from api import views
 
 urlpatterns = [
     path('transform', views.transform, name='transform'),

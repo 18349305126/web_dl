@@ -656,6 +656,10 @@ export default {
         // this.mouse_down_rotate(e);
         this.mouse_move_rotate(e);
       }
+      if(e.button == 2){
+        // this.mouse_move_up(e)
+
+      }
       this.container.onmouseup = function (e) {
         _this.container.onmousemove = null;
         _this.container.onmouseup = null;
@@ -669,6 +673,43 @@ export default {
 
     mouse_move_rotate(e) {
       //当鼠标开始移动的时候
+      const _this = this;
+
+      let ori_x = e.clientX;
+      let ori_y = e.clientY;
+
+      let old_theta = this.control.spher.theta;
+      let old_pi = this.control.spher.pi;
+
+      if (e.button == 0) {
+        _this.container.onmousemove = function (e) {
+          //计算需要移动的距离
+          let dx = e.clientX - ori_x;
+          let dy = e.clientY - ori_y;
+
+          let new_theta = old_theta - dx * _this.control.speed_rotate;
+          let new_pi = old_pi - dy * _this.control.speed_rotate;
+
+          _this.control.spher.theta = new_theta;
+          _this.control.spher.pi = new_pi;
+
+          let rect_coord = _this.get_rect_coord(
+            _this.control.spher.r,
+            _this.control.spher.theta,
+            _this.control.spher.pi
+          );
+
+          _this.view.camera.position.set(
+            rect_coord.x,
+            rect_coord.y,
+            rect_coord.z
+          );
+          _this.view.camera.lookAt(_this.view.scene.position);
+        };
+      }
+    },
+
+    mouse_move_up(e){
       const _this = this;
 
       let ori_x = e.clientX;
@@ -737,6 +778,22 @@ export default {
       this.control.rect.y = rect_coord.y;
       this.control.rect.z = rect_coord.z;
       this.view.camera.position.set(rect_coord.x, rect_coord.y, rect_coord.z);
+    },
+
+    normal(vec){//归一化
+      let new_vec = new Array(Vec.length);
+      let a = 0;
+      for (let i = 0; i < vec.length; i++) {
+        a = vec[i]*vec[i] + a;
+        
+      }
+      a = Math.sqrt(a);
+      for (let i = 0; i < vec.length; i++) {
+        new_vec[i] = vec[i] / a;
+        
+      }
+      return new_vec;
+
     },
   },
 

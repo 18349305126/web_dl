@@ -79,6 +79,8 @@ export default {
       state: Number, //状态控制，-1表示无图像，0表示图像叠加，1表示图像融合
       is_fusion: Boolean,
 
+      fusion_prop:Number,
+
       
       // fusion_mat: Array,//融合功能开启后.....，不管效率了
 
@@ -110,6 +112,8 @@ export default {
     this.init_finish = false;
     this.beta = 1;
 
+    this.fusion_prop = 1.5;
+
     this.rect = { x0: Number, y0: Number, x1: Number, y1: Number };
   },
   mounted() {
@@ -129,7 +133,7 @@ export default {
           vertexColors: THREE.VertexColors,
 
           transparent: true,
-          opacity: 0.5,
+          opacity: 0.35,
         }); //这里渲染方式应该是简单插值，但效果感觉不是很好
         this.view.img_meshs[i] = new THREE.Mesh(
           this.view.img_geometrys[i],
@@ -462,7 +466,9 @@ export default {
       // let abnorm = 0;
       for (let i = 0; i < row - 1; i++) {
         for (let j = 0; j < col - 1; j++) {
-          //每一个循环针对一个正方形方格，每一个正方形方格中有两个三角形面片，这个顺序很重要，不能改（我也不知道原理）
+          //每一个循环针对一个正方形方格，每一个正方形方格中有两个三角形面片，
+          //这个顺序很重要，不能改（我也不知道原理）
+          
           // let p0 = [i,j,0];
           // let p1 = [i,j+1,0];
           // let p2 = [i+1,j,0];
@@ -804,6 +810,9 @@ export default {
     fusion_states(){
       return this.$store.getters.fusion_states;
       // return this.$store.state.visible.fusion_states;
+    },
+    scale_state(){
+      return this.$store.getters.scale_state;
     }
   },
 
@@ -894,6 +903,12 @@ export default {
         }
       }
     },
+    scale_state(new_scale_state){
+      if(this.is_fusion){
+        
+      }
+
+    }
   },
 };
 </script>

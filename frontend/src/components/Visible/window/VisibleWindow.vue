@@ -4,8 +4,7 @@
       id="dicomImage"
       v-bind:style="getStyle()"
     ></div> -->
-    <div ref="dicomImage">
-    </div>
+    <div ref="dicomImage"></div>
     <!-- <input id="test" type ="button" style="position: absolute;"/> -->
   </div>
 </template>
@@ -17,7 +16,6 @@ import * as THREE from "three";
 // //引入 cornerstone,dicomParser,cornerstoneWADOImageLoader
 // import * as cornerstone from "cornerstone-core";
 // import * as dicomParser from "dicom-parser";
-
 
 // // 不建议 npm 安装 cornerstoneWADOImageLoader 如果你做了 会很头疼
 // import * as cornerstoneWADOImageLoader from "../../../../static/dist/cornerstoneWADOImageLoader.js";
@@ -56,7 +54,7 @@ import * as THREE from "three";
 export default {
   name: "VisibleWindow",
   props: [
-    "mat",
+    "p_mat",
     "width",
     "height",
     "mat_row_spacing",
@@ -80,11 +78,22 @@ export default {
         camera: "",
         geometry: "",
         mesh: "",
+
+        scale_gemetry: "",
+        scale_mesh: "",
       }, //与渲染相关的变量都在这里
       init_finish: Boolean,
       rect: "", //(x0,y0,x1,y1)的形式
-      mat_width:Number,
-      mat_height:Number,
+      mat_width: Number,
+      mat_height: Number,
+      mat:Array,
+
+      scale_glass: {
+        s_wid: Number,
+        s_hei: Number, //放大镜窗口大小（未放缩前，在原来矩阵的尺度上）
+        zoom: Number,
+        s_mat: Array,
+      },
 
       // file: "",
       // img:"",
@@ -94,6 +103,11 @@ export default {
   created() {
     // this.matting_on = false;
     // if (this.matting_state == undefined) this.matting_state = 0;
+
+    this.scale_glass.s_wid = 50;
+    this.scale_glass.s_hei = 50;
+    this.scale_glass.zoom = 3;
+    this.scale_w;
     this.mat_width = 0;
     this.mat_height = 0;
     this.beta = 1.0;
@@ -153,7 +167,7 @@ export default {
       // if (this.label == "z") this.view.mesh.rotateZ(-Math.PI / 2);
       // console.log(this.view.geometry);
 
-      if (this.label == "z") this.view.mesh.rotateZ(-Math.PI / 2);
+      // if (this.label == "z") this.view.mesh.rotateZ(-Math.PI / 2);
       // else if (this.label == "x") this.view.mesh.rotateZ(-Math.PI);
 
       this.view.scene.add(this.view.mesh);
@@ -161,11 +175,25 @@ export default {
       this.render();
       this.init_finish = true;
     },
+
+    scale_init() {
+      this.view.scale_gemetry = new THREE.BufferGeometry();
+      let scale_material = new THREE.MeshBasicMaterial({
+        vertexColors: THREE.VertexColors,
+      });
+
+      this.view.scale_mesh = new THREE.Mesh(
+        this.view.scale_gemetry,
+        scale_material
+      );
+      this.view.scene.add(this.view.scale_mesh);
+    },
     render() {
       requestAnimationFrame(this.render);
       this.view.renderer.render(this.view.scene, this.view.camera);
     },
-    reset_beta(beta) {//设置亮度
+    reset_beta(beta) {
+      //设置亮度
       // let k = 0;
       let ncolors = this.view.geometry.getAttribute("color").array;
 
@@ -181,6 +209,14 @@ export default {
       // this.view.mesh.scale.set(this.mat_row_spacing, this.mat_col_spacing);
 
       // this.view.geometry.center();
+    },
+
+    remove_scale(){
+      this.view.scene.remove(this.view.scale_mesh);
+      this.view.scale_mesh.geometry.dispose();
+      this.view.scale_mesh.material.dispose();
+      this.view.scale_mesh = undefined;
+      
     },
     get_m_mouse_pos(
       rect,
@@ -211,135 +247,20 @@ export default {
       // console.log(mouse_pos);
       return m_mouse_pos;
     },
-    m_t(w, h, x, y) {
-      return (
-        (h < x && w < this.mat_height - y) || (h > x && w > this.mat_height - y)
-      );
-    },
+
+
     reverse_mat(mat) {
-      let wid = mat.length;
-      let hei = mat[0].length;
-      let r_mat = new Array(hei);
-      for (let i = 0; i < hei; i++) {
-        r_mat[i] = new Array(wid);
-        for (let j = 0; j < wid; j++) {
-          r_mat[i][j] = mat[j][i];
+      let x = mat.length;
+      let y = mat[0].length;
+
+      let new_mat = new Array(y);
+      for (let i = 0; i < y; i++) {
+        new_mat[i] = new Array(x);
+        for (let j = 0; j < x; j++) {
+          new_mat[i][j] = mat[y - j - 1][x - i - 1];
         }
       }
-      return r_mat;
-    },
-    set_matting(x, y, mat, row, col, matting_state, alp, beta) {//设置fusion
-      let k = 0;
-      x = x + row / 2;
-      y = y + col / 2;
-      console.log(x, y);
-      let ncolors = new Float32Array((row - 1) * (col - 1) * 6 * 3);
-      if (matting_state == 0 || matting_state == undefined) {
-        // console.log(1);
-        for (let i = 0; i < row - 1; i++) {
-          for (let j = 0; j < col - 1; j++) {
-            //每一个循环针对一个正方形方格，每一个正方形方格中有两个三角形面片，这个顺序很重要，不能改（我也不知道原理）
-            // let p0 = [i,j,0];
-            // let p1 = [i,j+1,0];
-            // let p2 = [i+1,j,0];
-            // let p3 = [i+1,j+1,0];
-
-            //第一个三角形
-            //第一个点
-            // if(i == 10){
-            //   console.log((i < x && j < y) || (i > x && j > y));
-
-            // }
-
-            if (this.m_t(i, j, x, y)) {
-              ncolors[k] = (mat[i][j] / alp) * beta;
-              ncolors[k + 1] = (mat[i][j] / alp) * beta;
-              ncolors[k + 2] = (mat[i][j] / alp) * beta;
-            } else {
-              ncolors[k] = 0;
-              ncolors[k + 1] = 0;
-              ncolors[k + 2] = 0;
-            }
-
-            //第二个点
-            if (this.m_t(i + 1, j, x, y)) {
-              ncolors[k + 3] = (mat[i + 1][j] / alp) * beta;
-              ncolors[k + 4] = (mat[i + 1][j] / alp) * beta;
-              ncolors[k + 5] = (mat[i + 1][j] / alp) * beta;
-            } else {
-              ncolors[k + 3] = 0;
-              ncolors[k + 4] = 0;
-              ncolors[k + 5] = 0;
-            }
-
-            if (this.m_t(i, j + 1, x, y)) {
-              ncolors[k + 6] = (mat[i][j + 1] / alp) * beta;
-              ncolors[k + 7] = (mat[i][j + 1] / alp) * beta;
-              ncolors[k + 8] = (mat[i][j + 1] / alp) * beta;
-            } else {
-              ncolors[k + 6] = 0;
-              ncolors[k + 7] = 0;
-              ncolors[k + 8] = 0;
-            }
-
-            //第三个点
-
-            //第二个三角形
-            //第一个点
-
-            if (this.m_t(i + 1, j + 1, x, y)) {
-              ncolors[k + 9] = (mat[i + 1][j + 1] / alp) * beta;
-              ncolors[k + 10] = (mat[i + 1][j + 1] / alp) * beta;
-              ncolors[k + 11] = (mat[i + 1][j + 1] / alp) * beta;
-            } else {
-              ncolors[k + 9] = 0;
-              ncolors[k + 10] = 0;
-              ncolors[k + 11] = 0;
-            }
-
-            //第二个点
-            if (this.m_t(i, j + 1, x, y)) {
-              ncolors[k + 12] = (mat[i][j + 1] / alp) * beta;
-              ncolors[k + 13] = (mat[i][j + 1] / alp) * beta;
-              ncolors[k + 14] = (mat[i][j + 1] / alp) * beta;
-            } else {
-              ncolors[k + 12] = 0;
-              ncolors[k + 13] = 0;
-              ncolors[k + 14] = 0;
-            }
-
-            if (this.m_t(i + 1, j, x, y)) {
-              ncolors[k + 15] = (mat[i + 1][j] / alp) * beta;
-              ncolors[k + 16] = (mat[i + 1][j] / alp) * beta;
-              ncolors[k + 17] = (mat[i + 1][j] / alp) * beta;
-            } else {
-              ncolors[k + 15] = 0;
-              ncolors[k + 16] = 0;
-              ncolors[k + 17] = 0;
-            }
-            // if(i - x < 5 && j - y < 5){
-            //   // console.log(1);
-            //   for (let l = 0; l < 3; l++) {
-            //     ncolors[k + l] = 1;
-
-            //   }
-            // }
-
-            // if(mat[i][j] >= 255 && this.label =="z" )abnorm+=1;
-
-            // for (let ind = 0; ind < 18; ind++) {
-            //   ncolors[k+ind]=0.5;
-
-            // }
-            k += 18;
-          }
-        }
-      }
-
-      this.view.geometry.setAttribute(
-        "color",
-        new THREE.BufferAttribute(ncolors, 3)
-      );
+      return new_mat;
     },
 
     click(e) {
@@ -358,16 +279,16 @@ export default {
           e.clientX,
           e.clientY
         );
-        this.set_matting(
-          mouse_pos.x,
-          mouse_pos.y,
-          this.mat,
-          this.mat_width,
-          this.mat_height,
-          this.matting_state,
-          this.alpha,
-          this.beta
-        );
+        // this.set_matting(
+        //   mouse_pos.x,
+        //   mouse_pos.y,
+        //   this.mat,
+        //   this.mat_width,
+        //   this.mat_height,
+        //   this.matting_state,
+        //   this.alpha,
+        //   this.beta
+        // );
         // console.log(mouse_pos);
       }
     },
@@ -432,9 +353,7 @@ export default {
           _this.beta = _this.beta * beta;
           if (beta <= 0.001) beta = 0.001;
           // _this.reset_beta(_this.beta);
-          _this.reset_beta(
-            beta
-          );
+          _this.reset_beta(beta);
         }
         _this.container.onmousemove = null;
         _this.container.onmouseup = null;
@@ -449,11 +368,132 @@ export default {
     //   this.view.camera.position.y = o_poistion_y + dy;
     // },
 
-    imgAdd(mat, row, col, alp) {//添加医学影像
-      // //以三角形面片为单位！！！！
-      // let row = this.mat_width;
-      // let col = this.mat_height;
-      // console.log(row,col)
+    scale_operate(e) {
+      e.preventDefault();
+      const _this = this;
+
+      if (e.button == 0) {
+        let PI = 3.1415926;
+        let fov = (this.view.camera.fov / 180) * PI;
+        let aspect = this.view.camera.aspect;
+        let d = this.view.camera.position.z;
+        let wid = Math.tan(fov / 2) * d * 2;
+        let hei = Math.tan(fov / 2) * d * 2 * aspect;
+        let rect = this.get_rect();
+        let mouse_pos = this.get_mouse_coord(
+          rect,
+          wid,
+          hei,
+          this.view.camera.position.x,
+          this.view.camera.position.y,
+          e.clientX,
+          e.clientY
+        );
+
+        let child_mat = this.get_child_mat(
+          this.mat,
+          mouse_pos.x,
+          mouse_pos.y,
+          this.scale_glass.s_wid,
+          this.scale_glass.s_hei
+        );
+        if(child_mat != null){
+          this.scaleAdd(
+          child_mat,
+          mouse_pos.x,
+          mouse_pos.y,
+          this.alpha,
+          this.scale_glass.zoom
+        );
+        }
+        
+      }
+    },
+
+    get_child_mat(mat, mid_x, mid_y, wid, hei) {
+      let row = mat.length;
+      let col = mat[0].length;
+
+      mid_x = Math.round(mid_x + row / 2);
+      mid_y = Math.round(mid_y + col / 2);
+
+      let sx = Math.max(mid_x - wid / 2, 0);
+      let ex = Math.min(mid_x + wid / 2, row - 1);
+
+      let sy = Math.max(mid_y - hei / 2, 0);
+      let ey = Math.min(mid_y + hei / 2, col - 1);
+
+      if (ex > sx && ey > sy) {
+        let child_m = new Array(ex - sx);
+
+        for (let i = 0; i < ex - sx; i++) {
+          child_m[i] = new Uint16Array(ey - sy);
+          for (let j = 0; j < ey - sy; j++) {
+            child_m[i][j] = mat[i + sx][j + sy];
+          }
+        }
+        return child_m;
+      }
+
+      else return null;
+    },
+
+    get_rect() {
+      let rect = { x0: "", y0: "", x1: "", y1: "" };
+      rect.x0 = Number(this.view.renderer.domElement.getBoundingClientRect().x);
+      rect.y0 = Number(this.view.renderer.domElement.getBoundingClientRect().y);
+      rect.x1 = Number(
+        this.view.renderer.domElement.getBoundingClientRect().right
+      );
+      rect.y1 = Number(
+        this.view.renderer.domElement.getBoundingClientRect().bottom
+      );
+      return rect;
+    },
+
+    get_mouse_coord(//根据鼠标位置获取切面坐标
+      rect,
+      m_wid,
+      m_hei,
+      m_center_x,
+      m_center_y,
+      mouse_x,
+      mouse_y
+    ) {
+      //rect代表当前窗口矩形框位置与长宽；m_wid代表中心窗口宽，m_hei代表窗口高
+      //m_center_x,m_center_y代表当前相机x与y坐标
+      //mouse_x,mouse_y代表浏览器中鼠标位置
+
+      let cx = (rect.x0 + rect.x1) / 2;
+      let cy = (rect.y0 + rect.y1) / 2;
+      let wid = rect.x1 - rect.x0;
+      let hei = rect.y1 - rect.y0;
+      // let disX = e.clientX;
+      // let disY = e.clientY;
+      let dx = mouse_x - cx;
+      let dy = mouse_y - cy;
+
+      dx = (m_wid / wid) * dx;
+      dy = -(m_hei / hei) * dy;
+      let m_mouse_pos = {
+        x: m_center_x + dx,
+        y: m_center_y + dy,
+      };
+
+      return m_mouse_pos;
+    },
+
+    scaleAdd(mat, mid_x, mid_y, alp, zoom) {
+      let row = mat.length;
+      let col = mat[0].length;
+
+      let wid2 = row / 2;
+      let hei2 = col / 2;
+
+      mid_x = Math.round(mid_x);
+      mid_y = Math.round(mid_y);
+
+      // console.log(mid_x - wid2, mid_y - hei2);
 
       let k = 0;
       let vertices = new Float32Array((row - 1) * (col - 1) * 6 * 3);
@@ -462,32 +502,128 @@ export default {
       // let abnorm = 0;
       for (let i = 0; i < row - 1; i++) {
         for (let j = 0; j < col - 1; j++) {
-          //每一个循环针对一个正方形方格，每一个正方形方格中有两个三角形面片，这个顺序很重要，不能改（我也不知道原理）
-          // let p0 = [i,j,0];
-          // let p1 = [i,j+1,0];
-          // let p2 = [i+1,j,0];
-          // let p3 = [i+1,j+1,0];
+          //第一个点
+          vertices[k] = i - wid2;
+          vertices[k + 1] = j - hei2;
+          vertices[k + 2] = 1;
+          ncolors[k] = mat[i][j] / alp;
+          ncolors[k + 1] = mat[i][j] / alp;
+          ncolors[k + 2] = mat[i][j] / alp;
+
+          //第二个点
+          vertices[k + 3] = i + 1 - wid2;
+          vertices[k + 4] = j - hei2;
+          vertices[k + 5] = 1;
+          ncolors[k + 3] = mat[i + 1][j] / alp;
+          ncolors[k + 4] = mat[i + 1][j] / alp;
+          ncolors[k + 5] = mat[i + 1][j] / alp;
+
+          //第三个点
+          vertices[k + 6] = i - wid2;
+          vertices[k + 7] = j + 1 - hei2;
+          vertices[k + 8] = 1;
+          ncolors[k + 6] = mat[i][j + 1] / alp;
+          ncolors[k + 7] = mat[i][j + 1] / alp;
+          ncolors[k + 8] = mat[i][j + 1] / alp;
+
+          //第二个三角形
+          //第一个点
+          vertices[k + 9] = i + 1 - wid2;
+          vertices[k + 10] = j + 1 - hei2;
+          vertices[k + 11] = 1;
+          ncolors[k + 9] = mat[i + 1][j + 1] / alp;
+          ncolors[k + 10] = mat[i + 1][j + 1] / alp;
+          ncolors[k + 11] = mat[i + 1][j + 1] / alp;
+
+          //第二个点
+          vertices[k + 12] = i - wid2;
+          vertices[k + 13] = j + 1 - hei2;
+          vertices[k + 14] = 1;
+          ncolors[k + 12] = mat[i][j + 1] / alp;
+          ncolors[k + 13] = mat[i][j + 1] / alp;
+          ncolors[k + 14] = mat[i][j + 1] / alp;
+
+          //第三个点
+          vertices[k + 15] = i + 1 - wid2;
+          vertices[k + 16] = j - hei2;
+          vertices[k + 17] = 1;
+          ncolors[k + 15] = mat[i + 1][j] / alp;
+          ncolors[k + 16] = mat[i + 1][j] / alp;
+          ncolors[k + 17] = mat[i + 1][j] / alp;
+
+          k += 18;
+        }
+      }
+
+      // console.log(vertices)
+
+      this.view.scale_gemetry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(vertices, 3)
+      );
+
+      // this.view.geometry.setAttribute(
+      //   "position",
+      //   new THREE.BufferAttribute(vertices, 3)
+      // );
+      this.view.scale_gemetry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(ncolors, 3)
+      );
+      this.view.scale_mesh.scale.set(
+        this.mat_row_spacing * zoom,
+        this.mat_col_spacing * zoom
+      );
+      this.view.scale_mesh.position.set(mid_x,mid_y)
+
+      // this.view.scale_mesh.scale.set(zoom, zoom);
+    },
+
+    //将切面矩阵转化为可以被WebGL接收的顶点值与颜色值
+    imgAdd(mat, alp) { 
+      //mat代表切面矩阵，alp是一个修订值
+
+      let row = mat.length;
+      let col = mat[0].length;
+      let wid2 = row / 2;
+      let hei2 = col / 2;
+
+      let k = 0;
+      let vertices = new Float32Array((row - 1) * (col - 1) * 6 * 3);
+      //顶点数组
+      let ncolors = new Float32Array((row - 1) * (col - 1) * 6 * 3);
+      //颜色数组
+
+      // let abnorm = 0;
+      for (let i = 0; i < row - 1; i++) {
+        for (let j = 0; j < col - 1; j++) {
+          //每一个循环针对一个正方形方格，
+          //每一个正方形方格中有两个三角形面片，
+          //这个顺序很重要，不能改
+
+          // let p0 = [i,j,0];let p1 = [i,j+1,0]; 
+          //let p2 = [i+1,j,0]; let p3 = [i+1,j+1,0];
 
           //第一个三角形
           //第一个点
-          vertices[k] = i;
-          vertices[k + 1] = j;
+          vertices[k] = i - wid2;
+          vertices[k + 1] = j - hei2;
           vertices[k + 2] = 0;
           ncolors[k] = mat[i][j] / alp;
           ncolors[k + 1] = mat[i][j] / alp;
           ncolors[k + 2] = mat[i][j] / alp;
 
           //第二个点
-          vertices[k + 3] = i + 1;
-          vertices[k + 4] = j;
+          vertices[k + 3] = i + 1 - wid2;
+          vertices[k + 4] = j - hei2;
           vertices[k + 5] = 0;
           ncolors[k + 3] = mat[i + 1][j] / alp;
           ncolors[k + 4] = mat[i + 1][j] / alp;
           ncolors[k + 5] = mat[i + 1][j] / alp;
 
           //第三个点
-          vertices[k + 6] = i;
-          vertices[k + 7] = j + 1;
+          vertices[k + 6] = i - wid2;
+          vertices[k + 7] = j + 1 - hei2;
           vertices[k + 8] = 0;
           ncolors[k + 6] = mat[i][j + 1] / alp;
           ncolors[k + 7] = mat[i][j + 1] / alp;
@@ -495,41 +631,33 @@ export default {
 
           //第二个三角形
           //第一个点
-          vertices[k + 9] = i + 1;
-          vertices[k + 10] = j + 1;
+          vertices[k + 9] = i + 1 - wid2;
+          vertices[k + 10] = j + 1 - hei2;
           vertices[k + 11] = 0;
           ncolors[k + 9] = mat[i + 1][j + 1] / alp;
           ncolors[k + 10] = mat[i + 1][j + 1] / alp;
           ncolors[k + 11] = mat[i + 1][j + 1] / alp;
 
           //第二个点
-          vertices[k + 12] = i;
-          vertices[k + 13] = j + 1;
+          vertices[k + 12] = i - wid2;
+          vertices[k + 13] = j + 1 - hei2;
           vertices[k + 14] = 0;
           ncolors[k + 12] = mat[i][j + 1] / alp;
           ncolors[k + 13] = mat[i][j + 1] / alp;
           ncolors[k + 14] = mat[i][j + 1] / alp;
 
           //第三个点
-          vertices[k + 15] = i + 1;
-          vertices[k + 16] = j;
+          vertices[k + 15] = i + 1 - wid2;
+          vertices[k + 16] = j - hei2;
           vertices[k + 17] = 0;
           ncolors[k + 15] = mat[i + 1][j] / alp;
           ncolors[k + 16] = mat[i + 1][j] / alp;
           ncolors[k + 17] = mat[i + 1][j] / alp;
 
-          // if(mat[i][j] >= 255 && this.label =="z" )abnorm+=1;
-
-          // for (let ind = 0; ind < 18; ind++) {
-          //   ncolors[k+ind]=0.5;
-
-          // }
           k += 18;
         }
       }
-      // console.log(abnorm);
 
-      // this.view.geometry = new THREE.BufferGeometry();
       this.view.geometry.setAttribute(
         "position",
         new THREE.BufferAttribute(vertices, 3)
@@ -538,24 +666,7 @@ export default {
         "color",
         new THREE.BufferAttribute(ncolors, 3)
       );
-      // if (this.label == "z") this.view.mesh.rotateZ(-Math.PI / 2);
       this.view.mesh.scale.set(this.mat_row_spacing, this.mat_col_spacing);
-      // if (this.label == "y") this.view.mesh.rotateX(-Math.PI );
-
-      this.view.geometry.center();
-      // if (this.label == "y") this.view.mesh.rotateX(-Math.PI);
-      //       正方形渲染的顺序，一定不能乱
-      // //       var vertices = new Float32Array( [
-      // // 	 0.0,  0.0,  1.0,
-      // // 	 1.0,  0.0,  1.0,
-      // // 	 0.0,  1.0,  1.0,
-
-      // // 	 1.0,  1.0,  1.0,
-      // // 	 0.0,  1.0,  1.0,
-      // // 	 1.0,  0.0,  1.0
-      // // ] );
-
-      // this.render();
     },
     // handleDragOver(evt) {
     //   evt.stopPropagation();
@@ -576,7 +687,8 @@ export default {
     //     cornerstone.displayImage(element, image, viewport);
     //   }
     // },
-    matting_rm(mat, row, col, alp) {//删除fusion的效果
+    matting_rm(mat, row, col, alp) {
+      //删除fusion的效果
       let k = 0;
       let ncolors = new Float32Array((row - 1) * (col - 1) * 6 * 3);
 
@@ -649,14 +761,25 @@ export default {
       return style;
     },
   },
+  computed: {
+    scale_state() {
+      return this.$store.getters.scale_state;
+    },
+  },
 
   watch: {
-    mat(new_m, old_m) {
+    p_mat(new_m, old_m) {
       if (new_m != undefined) {
         // console.log(new_m);
         this.mat_width = new_m.length;
         this.mat_height = new_m[0].length;
-        this.imgAdd(new_m, this.mat_width, this.mat_height, this.alpha);
+        if(this.label == 'z'){
+          this.mat = this.reverse_mat(new_m);
+        }
+        else{
+          this.mat = new_m;
+        } 
+        this.imgAdd(this.mat, this.alpha);
       }
     },
     label(new_label, old_label) {
@@ -666,10 +789,9 @@ export default {
       //   this.view.mesh.rotateZ(Math.PI / 2);
 
       // }
-      if(new_label='z' && old_label != 'z'){
-        this.view.mesh.rotateZ(- Math.PI / 2);
+      if ((new_label = "z" && old_label != "z")) {
+        // this.view.mesh.rotateZ(-Math.PI / 2);
       }
-
     },
     matting_on(new_l, old_l) {
       if (new_l == 1 && this.container != "" && this.label == "z") {
@@ -684,6 +806,20 @@ export default {
         // this.container.click = null;
         this.container.removeEventListener("click", this.click, false);
         this.matting_rm(this.mat, this.mat_width, this.mat_height, this.alpha);
+      }
+    },
+
+    scale_state(new_scale_state) {
+      if (new_scale_state == 1) {
+        if (this.mat != undefined) {
+          this.scale_init();
+          // this.container.removeEventListener("click", this.click, false);
+          this.container.addEventListener("click", this.scale_operate);
+          // document.addEventListener("keydown", this.scale_operate);
+        }
+      }
+      else if(new_scale_state == 0){
+        this.remove_scale();
       }
     },
   },

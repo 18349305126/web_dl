@@ -1,0 +1,35 @@
+{
+    "success": true,
+    "data":{
+      "friend": [{
+        "id": "001",
+        "name": "萧古",
+        "address": "徐州人士"
+      }, {
+        "id": "002",
+        "name":"sweet甜",
+        "address": "安徽人士"
+      }, {
+        "id": "003",
+        "name":"大脸猫",
+        "address": "徐州人士"
+      }, {
+        "id": "004",
+        "name":"初见",
+        "address": "淮安人士"
+      }, {
+        "id": "005",
+        "name": "凉茶",
+        "address": "南京人士"
+      }, {
+        "id": "006",
+        "name":"看茶听学",
+        "address": "安徽人士"
+      }, {
+        "id": "007",
+        "name":"顽皮大朋友",
+        "address": "安徽人士"
+      }
+    ]
+    }
+  }
